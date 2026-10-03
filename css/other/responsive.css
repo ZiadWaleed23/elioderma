@@ -1,0 +1,160 @@
+/* =========================================================================
+   Elio— RESPONSIVE OVERRIDES
+   Large desktop is the default in style.css. This file scales the design
+   down intentionally at each breakpoint rather than simply shrinking it.
+   ========================================================================= */
+
+/* ---------------------------------------------------------------------
+   LARGE DESKTOP FINE-TUNING (≥1440px) handled by max-width container.
+   --------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------
+   TABLET (≤ 1080px)
+   --------------------------------------------------------------------- */
+@media (max-width: 1080px) {
+  :root { --gutter: 28px; }
+
+  .main-nav, .nav-item--categories .mega-menu { display: none; }
+  .nav-toggle { display: flex; }
+
+  .hero { min-height: 78vh; }
+  .hero__content { max-width: 100%; padding-bottom: 64px; }
+
+  .value-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .split, .split--reverse { grid-template-columns: 1fr; gap: 36px; }
+  .split--reverse .split__media { order: 0; }
+
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 40px 32px; }
+
+  .catalog { grid-template-columns: 1fr; }
+  .filter-sidebar { position: static; }
+
+  .cart-layout { grid-template-columns: 1fr; }
+  .cart-summary { position: static; }
+
+  /* Filters collapse into a slide-in panel triggered by a mobile bar */
+  .mobile-catalog-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  .mobile-catalog-bar .btn { flex: 1; }
+  .catalog-sidebar-desktop-search { display: none; }
+
+  .filter-panel-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 800;
+    background: rgba(27,25,24,0.5);
+  }
+  .filter-panel-overlay.is-open { display: block; }
+  #filter-panel.is-open ~ .filter-panel-overlay,
+  .filter-panel-overlay.is-open { display: block; }
+
+  #filter-panel {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: min(360px, 88vw);
+    background: var(--ivory);
+    z-index: 850;
+    transform: translateX(100%);
+    transition: transform .3s var(--ease);
+    padding: 26px 26px 100px;
+    overflow-y: auto;
+  }
+  #filter-panel.is-open { transform: translateX(0); }
+  .filter-panel__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 26px;
+  }
+  .filter-panel__head h3 { font-family: var(--font-display); font-size: 1.3rem; }
+  .filter-panel__apply {
+    position: fixed;
+    bottom: 0; right: 0;
+    width: min(360px, 88vw);
+    padding: 18px 26px;
+    background: var(--ivory);
+    border-top: 1px solid var(--taupe-line);
+    z-index: 860;
+    transform: translateX(100%);
+    transition: transform .3s var(--ease);
+  }
+  #filter-panel.is-open ~ .filter-panel__apply,
+  .filter-panel__apply.is-open { transform: translateX(0); }
+
+  .values-editorial { grid-template-columns: 1fr; }
+  .modal-product { grid-template-columns: 1fr; }
+}
+
+/* ---------------------------------------------------------------------
+   MOBILE (≤ 640px)
+   --------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  :root { --gutter: 20px; --header-h: 72px; }
+
+  .section { padding: 72px 0; }
+  .section--tight { padding: 52px 0; }
+  .section__head { margin-bottom: 36px; }
+
+  .hero { min-height: 82vh; }
+  .hero__actions { flex-direction: column; align-items: stretch; }
+  .hero__actions .btn { width: 100%; }
+
+  .product-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .product-row .product-card { flex-basis: 160px; }
+
+  .value-grid { grid-template-columns: 1fr; }
+  .value-item { padding: 32px 26px; }
+
+  .footer-grid { grid-template-columns: 1fr; gap: 36px; padding-bottom: 44px; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+
+  .catalog-toolbar { flex-direction: column; align-items: stretch; }
+  .catalog-search { max-width: 100%; }
+  .catalog-toolbar__right { justify-content: space-between; }
+
+  .modal__panel { padding: 24px 20px; }
+  .modal-product__actions { flex-direction: column; }
+  .modal-product__actions .btn { width: 100%; }
+
+  .search-overlay__results { grid-template-columns: 1fr; }
+  .search-overlay__form input { font-size: 1.2rem; }
+
+  .back-to-top { right: 16px; bottom: 16px; width: 42px; height: 42px; }
+
+  .cart-item { gap: 14px; }
+  .cart-item__media { width: 72px; }
+}
+
+/* ---------------------------------------------------------------------
+   SMALL PHONES (≤ 380px)
+   --------------------------------------------------------------------- */
+@media (max-width: 380px) {
+  .product-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------------------------------------------------------------------
+   STATS BAND — responsive
+   --------------------------------------------------------------------- */
+@media (max-width: 1080px) {
+  .stats-band__grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-band__item { padding: 44px 16px; }
+  /* reset desktop dividers, then draw: vertical for right column, horizontal for bottom row */
+  .stats-band__item + .stats-band__item::before { display: none; }
+  .stats-band__item:nth-child(even)::before {
+    display: block; left: 0; top: 25%; bottom: 25%; width: 1px;
+  }
+  .stats-band__item:nth-child(n+3)::after {
+    content: ""; position: absolute; top: 0; left: 15%; right: 15%; height: 1px;
+    background: rgba(247,241,236,0.14);
+  }
+}
+@media (max-width: 640px) {
+  .stats-band__item { padding: 34px 10px; }
+  .stats-band__number { font-size: 2.1rem; }
+  .stats-band__label { font-size: 0.68rem; letter-spacing: 0.1em; }
+}

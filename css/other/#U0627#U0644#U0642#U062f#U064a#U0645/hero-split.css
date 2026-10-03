@@ -1,0 +1,77 @@
+/* =========================================================================
+   Elio — HERO SPLIT (text on one side, arch image on gold panel)
+   ملف إضافي: بيشتغل بس على  .hero--split
+   للرجوع للشكل القديم: شيل كلاس hero--split من index.html
+   ========================================================================= */
+
+.hero--split {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  align-items: stretch;
+  min-height: max(580px, calc(100vh - var(--header-h)));
+  background: var(--ivory);
+  color: var(--charcoal);
+}
+
+/* ---------- TEXT SIDE ---------- */
+.hero--split .hero__content {
+  order: 1;
+  align-self: center;
+  max-width: none;
+  margin: 0;
+  /* بيبدأ من نفس خط الـ container عشان يتراصف مع الهيدر */
+  padding: 72px 48px 72px max(var(--gutter), calc((100vw - var(--container)) / 2 + var(--gutter)));
+}
+.hero--split .hero__title { color: var(--charcoal); font-size: clamp(2.4rem, 4vw, 3.9rem); }
+.hero--split .hero__desc  { color: var(--charcoal-soft); max-width: 48ch; }
+.hero--split .hero__actions .btn--outline {
+  color: var(--charcoal);
+  border-color: rgba(32,19,22,0.35);
+}
+.hero--split .hero__actions .btn--outline:hover {
+  background: var(--charcoal);
+  color: var(--ivory);
+}
+
+/* ---------- IMAGE SIDE ---------- */
+.hero--split .hero__media {
+  order: 2;
+  position: relative;
+  inset: auto;
+  overflow: visible;
+}
+/* الكتلة الدهبية على الطرف */
+.hero--split .hero__media::before {
+  content: "";
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 42%;
+  background: var(--taupe);
+}
+/* الصورة على شكل قوس */
+.hero--split .hero__media img {
+  position: absolute;
+  right: 15%;
+  bottom: 0;
+  width: 74%;
+  height: calc(100% - 48px);
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 999px 999px 0 0;
+  filter: none;
+}
+.hero--split .hero__scrim { display: none; }
+
+/* ---------- TABLET & MOBILE ---------- */
+@media (max-width: 1080px) {
+  .hero--split { grid-template-columns: 1fr; min-height: 0; }
+  .hero--split .hero__content { padding: 56px var(--gutter) 40px; }
+  .hero--split .hero__media { height: 480px; }
+}
+
+@media (max-width: 640px) {
+  .hero--split .hero__content { padding: 44px var(--gutter) 32px; }
+  .hero--split .hero__media { height: 380px; }
+  .hero--split .hero__media::before { width: 55%; }
+  .hero--split .hero__media img { right: 12%; width: 76%; height: calc(100% - 32px); }
+}

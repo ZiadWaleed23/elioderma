@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AESTHERA — Manage Products</title>
+<link rel="icon" type="image/png" href="img/logo.png">
+<style>
+  :root {
+    --ivory: #F7F1EC; --white:#fff; --charcoal:#201316; --charcoal-soft:#402A30;
+    --accent:#7C1F3D; --accent-dark:#591730; --gold:#C99A3D; --line:#EAD9CD;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--ivory); color: var(--charcoal);
+  }
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--charcoal); color: var(--ivory);
+    padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  .topbar h1 { font-size: 1.15rem; margin: 0; }
+  .topbar .sub { font-size: 0.78rem; color: #cbb; margin: 2px 0 0; opacity: .8; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 20px 80px; }
+
+  .warn { background: #F5E5EA; border: 1px solid var(--line); padding: 12px 16px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 20px; display:none; }
+
+  .toolbar {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap;
+  }
+  .toolbar input[type="text"] {
+    flex: 1; min-width: 220px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 0.92rem; background: var(--white);
+  }
+  select.filter-select {
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--white); font-size: 0.9rem;
+  }
+  button { font-family: inherit; cursor: pointer; }
+  .btn { border: none; border-radius: 6px; padding: 10px 18px; font-weight: 700; font-size: 0.88rem; }
+  .btn--primary { background: var(--accent); color: var(--ivory); }
+  .btn--primary:hover { background: var(--accent-dark); }
+  .btn--gold { background: var(--gold); color: var(--charcoal); }
+  .btn--gold:hover { filter: brightness(0.95); }
+  .btn--ghost { background: transparent; color: var(--charcoal-soft); border: 1px solid var(--line); }
+  .btn--ghost:hover { background: var(--white); }
+  .btn--small { padding: 6px 12px; font-size: 0.78rem; }
+  .btn--danger { background: transparent; color: #A5203E; border: 1px solid #E9C7D1; }
+  .btn--danger:hover { background: #FBEEF1; }
+
+  .status-line { font-size: 0.82rem; color: var(--charcoal-soft); margin-bottom: 14px; }
+  .status-line strong { color: var(--accent-dark); }
+
+  .table-wrap { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--white); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  thead th {
+    text-align: left; background: #FBF6F1; padding: 10px 14px; font-size: 0.72rem;
+    text-transform: uppercase; letter-spacing: 0.04em; color: var(--charcoal-soft); border-bottom: 1px solid var(--line);
+  }
+  tbody td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #FCF8F4; }
+  .cell-thumb img { width: 40px; height: 48px; object-fit: cover; border-radius: 4px; background: var(--ivory); display:block; }
+  .cell-name { font-weight: 600; }
+  .cell-price { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .cell-flags span { display: inline-block; font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 3px; margin-right: 4px; }
+  .flag-featured { background: #EADFF6; color: #5B3B94; }
+  .flag-bestseller { background: #F7E3C6; color: #8A5A10; }
+  .cell-actions { white-space: nowrap; }
+  .cell-actions button { margin-right: 6px; }
+  .empty-row td { text-align: center; padding: 40px 14px; color: var(--charcoal-soft); }
+
+  /* ---- Form modal ---- */
+  .form-overlay {
+    display: none; position: fixed; inset: 0; z-index: 100; background: rgba(32,19,22,0.55);
+    align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto;
+  }
+  .form-overlay.is-open { display: flex; }
+  .form-card {
+    background: var(--white); border-radius: 10px; padding: 26px; width: 100%; max-width: 760px;
+  }
+  .form-card h2 { margin-top: 0; font-size: 1.25rem; color: var(--accent-dark); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { margin-bottom: 16px; }
+  .field.full { grid-column: 1 / -1; }
+  label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; }
+  input, select, textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 5px;
+    background: var(--ivory); font-family: inherit; font-size: 0.94rem;
+  }
+  textarea { resize: vertical; min-height: 70px; }
+  .checks { display: flex; gap: 24px; margin-top: 4px; }
+  .checks label { display: flex; align-items: center; gap: 8px; font-weight: 500; margin: 0; }
+  .checks input { width: auto; }
+  .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+  .hint { font-size: 0.78rem; color: var(--charcoal-soft); margin-top: 4px; }
+
+  @media (max-width: 720px) {
+    .row { grid-template-columns: 1fr; }
+    table, thead, tbody, tr { display: block; }
+    thead { display: none; }
+    tbody tr { border-bottom: 1px solid var(--line); padding: 10px 0; }
+    tbody td { border: none; padding: 4px 14px; }
+    .cell-thumb, .cell-brand, .cell-category { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>Manage Products</h1>
+    <p class="sub">Edit, add or remove products, then download a ready-to-upload products.js</p>
+  </div>
+  <a href="products.html" class="btn btn--ghost btn--small" style="color:var(--ivory);border-color:#4a3a3f;">View Site →</a>
+</div>
+
+<div class="wrap">
+
+  <div class="warn" id="config-warning">
+    Couldn't load <code>js/config.js</code> or <code>js/products.js</code> — make sure this file sits in the same folder as <code>index.html</code>, next to the <code>js/</code> folder.
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="search-input" placeholder="Search by name, brand, tag…">
+    <select id="category-filter" class="filter-select"></select>
+    <button class="btn btn--primary" id="add-btn">+ Add Product</button>
+    <button class="btn btn--gold" id="download-btn">Download products.js</button>
+  </div>
+
+  <p class="status-line" id="status-line"></p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="cell-thumb"></th>
+          <th>Name</th>
+          <th class="cell-brand">Brand</th>
+          <th class="cell-category">Category</th>
+          <th>Price (EGP)</th>
+          <th>Flags</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="product-tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ============================= ADD / EDIT FORM ============================= -->
+<div class="form-overlay" id="form-overlay">
+  <div class="form-card">
+    <h2 id="form-title">Add Product</h2>
+    <div class="row">
+      <div class="field full">
+        <label>Product Name</label>
+        <input type="text" id="f-name" placeholder="e.g. VoluLift Lip Contour Gel">
+      </div>
+      <div class="field full">
+        <label>ID (unique, editable — never reuse an old one)</label>
+        <input type="text" id="f-id">
+      </div>
+      <div class="field">
+        <label>Brand</label>
+        <select id="f-brand"></select>
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select id="f-category"></select>
+      </div>
+      <div class="field">
+        <label>Subcategory</label>
+        <input type="text" id="f-subcategory" placeholder="e.g. Lip Fillers">
+      </div>
+      <div class="field">
+        <label>Date Added</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="field">
+        <label>Price (EGP)</label>
+        <input type="number" id="f-price" min="0" step="any" inputmode="decimal" placeholder="e.g. 2500">
+        <p class="hint">Numbers only — the site formats it as “2,500 EGP”.</p>
+      </div>
+      <div class="field full">
+        <label>Description</label>
+        <textarea id="f-description" placeholder="1-3 sentence professional description"></textarea>
+      </div>
+      <div class="field full">
+        <label>Main Image URL</label>
+        <input type="text" id="f-image" placeholder="https://...">
+      </div>
+      <div class="field full">
+        <label>Extra Gallery Images (one URL per line, optional)</label>
+        <textarea id="f-gallery" placeholder="https://... (leave empty to just use the main image)"></textarea>
+      </div>
+      <div class="field full">
+        <label>Tags (comma-separated)</label>
+        <input type="text" id="f-tags" placeholder="lip, hyaluronic acid, filler">
+      </div>
+      <div class="field full">
+        <div class="checks">
+          <label><input type="checkbox" id="f-featured"> Featured</label>
+          <label><input type="checkbox" id="f-bestseller"> Bestseller</label>
+        </div>
+      </div>
+    </div>
+    <p class="hint" id="form-error" style="color:#A5203E;"></p>
+    <div class="form-actions">
+      <button class="btn btn--ghost" id="form-cancel">Cancel</button>
+      <button class="btn btn--primary" id="form-save">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/products.js"></script>
+<script>
+(function () {
+  if (typeof SITE_CONFIG === "undefined" || typeof PRODUCTS === "undefined") {
+    document.getElementById("config-warning").style.display = "block";
+    return;
+  }
+
+  // Working copy — nothing is saved anywhere until "Download products.js"
+  let items = JSON.parse(JSON.stringify(PRODUCTS));
+  let editingOriginalId = null; // null = adding new
+  let searchTerm = "";
+  let categoryFilter = "all";
+
+  const $ = sel => document.querySelector(sel);
+
+  function getCategoryById(id) { return SITE_CONFIG.categories.find(c => c.id === id) || null; }
+  function getBrandName(id) { const b = SITE_CONFIG.brands.find(b => b.id === id); return b ? b.name : id; }
+
+  function slugify(str) {
+    return String(str || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  }
+  function esc(str) {
+    return String(str || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  }
+
+  /* ---------------- Category filter dropdown ---------------- */
+  const categorySelectFilter = $("#category-filter");
+  categorySelectFilter.innerHTML = `<option value="all">All Categories</option>` +
+    SITE_CONFIG.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+  categorySelectFilter.addEventListener("change", () => { categoryFilter = categorySelectFilter.value; renderTable(); });
+
+  $("#search-input").addEventListener("input", e => { searchTerm = e.target.value.trim().toLowerCase(); renderTable(); });
+
+  /* ---------------- Table rendering ---------------- */
+  function renderTable() {
+    const tbody = $("#product-tbody");
+    let list = items;
+
+    if (categoryFilter !== "all") list = list.filter(p => p.category === categoryFilter);
+    if (searchTerm) {
+      list = list.filter(p => {
+        const hay = [p.name, getBrandName(p.brand), p.category, p.subcategory, ...(p.tags || [])].join(" ").toLowerCase();
+        return hay.includes(searchTerm);
+      });
+    }
+
+    $("#status-line").innerHTML = `<strong>${items.length}</strong> product${items.length === 1 ? "" : "s"} staged &nbsp;·&nbsp; showing <strong>${list.length}</strong> &nbsp;·&nbsp; nothing is live until you download and re-upload products.js`;
+
+    if (!list.length) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No products match.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = list.map(p => {
+      const cat = getCategoryById(p.category);
+      const flags = (p.featured ? '<span class="flag-featured">Featured</span>' : "") +
+                    (p.bestseller ? '<span class="flag-bestseller">Bestseller</span>' : "");
+      return `
+        <tr>
+          <td class="cell-thumb"><img src="${p.image}" alt=""></td>
+          <td class="cell-name">${p.name}</td>
+          <td class="cell-brand">${getBrandName(p.brand)}</td>
+          <td class="cell-category">${cat ? cat.name : p.category}</td>
+          <td class="cell-price">${Number.isFinite(Number(p.price)) ? Number(p.price).toLocaleString("en-US") + " EGP" : "<em>missing</em>"}</td>
+          <td class="cell-flags">${flags}</td>
+          <td class="cell-actions">
+            <button class="btn btn--ghost btn--small" data-edit="${p.id}">Edit</button>
+            <button class="btn btn--danger btn--small" data-delete="${p.id}">Delete</button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  /* ---------------- Add / Edit form ---------------- */
+  const brandSelect = $("#f-brand");
+  const categorySelect = $("#f-category");
+  brandSelect.innerHTML = SITE_CONFIG.brands.map(b => `<option value="${b.id}">${b.name}</option>`).join("");
+  categorySelect.innerHTML = SITE_CONFIG.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+
+  const nameEl = $("#f-name");
+  const idEl = $("#f-id");
+  let idManuallyEdited = false;
+  idEl.addEventListener("input", () => idManuallyEdited = true);
+  nameEl.addEventListener("input", () => { if (!idManuallyEdited) idEl.value = slugify(nameEl.value); });
+
+  function openForm(product) {
+    $("#form-error").textContent = "";
+    idManuallyEdited = !!product;
+    editingOriginalId = product ? product.id : null;
+    $("#form-title").textContent = product ? "Edit Product" : "Add Product";
+
+    nameEl.value = product ? product.name : "";
+    idEl.value = product ? product.id : "";
+    brandSelect.value = product ? product.brand : brandSelect.options[0]?.value;
+    categorySelect.value = product ? product.category : categorySelect.options[0]?.value;
+    $("#f-subcategory").value = product ? product.subcategory || "" : "";
+    $("#f-description").value = product ? product.description || "" : "";
+    $("#f-image").value = product ? product.image || "" : "";
+    $("#f-gallery").value = product && product.gallery ? product.gallery.join("\n") : "";
+    $("#f-tags").value = product && product.tags ? product.tags.join(", ") : "";
+    $("#f-date").value = product ? product.dateAdded : new Date().toISOString().slice(0, 10);
+    $("#f-price").value = product && Number.isFinite(Number(product.price)) ? product.price : "";
+    $("#f-featured").checked = product ? !!product.featured : false;
+    $("#f-bestseller").checked = product ? !!product.bestseller : false;
+
+    $("#form-overlay").classList.add("is-open");
+  }
+
+  function closeForm() { $("#form-overlay").classList.remove("is-open"); }
+
+  $("#add-btn").addEventListener("click", () => openForm(null));
+  $("#form-cancel").addEventListener("click", closeForm);
+  $("#form-overlay").addEventListener("click", e => { if (e.target.id === "form-overlay") closeForm(); });
+
+  $("#form-save").addEventListener("click", () => {
+    const id = idEl.value.trim() || slugify(nameEl.value || "new-product");
+    const name = nameEl.value.trim();
+
+    if (!name) { $("#form-error").textContent = "Product name is required."; return; }
+    if (!id) { $("#form-error").textContent = "ID is required."; return; }
+
+    const priceRaw = $("#f-price").value.trim();
+    const price = Number(priceRaw);
+    if (!priceRaw || !Number.isFinite(price) || price <= 0) { $("#form-error").textContent = "Price is required — enter a number greater than 0 (in EGP)."; return; }
+
+    const collision = items.find(p => p.id === id && p.id !== editingOriginalId);
+    if (collision) { $("#form-error").textContent = `ID "${id}" is already used by "${collision.name}". Choose a different ID.`; return; }
+
+    const gallery = $("#f-gallery").value.split("\n").map(s => s.trim()).filter(Boolean);
+    const tags = $("#f-tags").value.split(",").map(s => s.trim()).filter(Boolean);
+
+    const product = {
+      id, name,
+      brand: brandSelect.value,
+      category: categorySelect.value,
+      subcategory: $("#f-subcategory").value.trim(),
+      price,
+      description: $("#f-description").value.trim(),
+      image: $("#f-image").value.trim(),
+      ...(gallery.length ? { gallery } : {}),
+      featured: $("#f-featured").checked,
+      bestseller: $("#f-bestseller").checked,
+      dateAdded: $("#f-date").value,
+      tags
+    };
+
+    if (editingOriginalId) {
+      const idx = items.findIndex(p => p.id === editingOriginalId);
+      if (idx > -1) items[idx] = product;
+    } else {
+      items.push(product);
+    }
+
+    closeForm();
+    renderTable();
+  });
+
+  /* ---------------- Table actions: edit / delete ---------------- */
+  $("#product-tbody").addEventListener("click", e => {
+    const editBtn = e.target.closest("[data-edit]");
+    if (editBtn) { openForm(items.find(p => p.id === editBtn.dataset.edit)); return; }
+
+    const delBtn = e.target.closest("[data-delete]");
+    if (delBtn) {
+      const p = items.find(p => p.id === delBtn.dataset.delete);
+      if (p && confirm(`Delete "${p.name}"? This only affects the staged list until you download.`)) {
+        items = items.filter(x => x.id !== delBtn.dataset.delete);
+        renderTable();
+      }
+    }
+  });
+
+  /* ---------------- Download products.js ---------------- */
+  function formatProduct(p) {
+    const galleryLine = p.gallery && p.gallery.length
+      ? `\n    gallery: [${p.gallery.map(g => `"${esc(g)}"`).join(", ")}],`
+      : "";
+    return `  {
+    id: "${esc(p.id)}",
+    name: "${esc(p.name)}",
+    brand: "${esc(p.brand)}",
+    category: "${esc(p.category)}",
+    subcategory: "${esc(p.subcategory)}",${Number.isFinite(Number(p.price)) ? `\n    price: ${Number(p.price)},` : ""}
+    description: "${esc(p.description)}",
+    image: "${esc(p.image)}",${galleryLine}
+    featured: ${!!p.featured},
+    bestseller: ${!!p.bestseller},
+    dateAdded: "${esc(p.dateAdded)}",
+    tags: [${(p.tags || []).map(t => `"${esc(t)}"`).join(", ")}]
+  }`;
+  }
+
+  $("#download-btn").addEventListener("click", () => {
+    const header = `/* =========================================================================
+   PRODUCTS.JS
+   All product data lives here as one PRODUCTS array. Every part of the
+   site (homepage, catalog, search, product modal) reads from it.
+
+   Generated from manage-products.html on ${new Date().toISOString().slice(0, 10)}.
+   To keep managing products, open manage-products.html again and re-upload
+   this file when you're done — it always starts from whatever products.js
+   is currently on the server.
+   ========================================================================= */
+
+`;
+    const body = `const PRODUCTS = [\n${items.map(formatProduct).join(",\n")}\n];\n`;
+    const blob = new Blob([header + body], { type: "text/javascript" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "products.js";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  renderTable();
+})();
+</script>
+</body>
+</html>

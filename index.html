@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="elio_elevating_aesthetic_excellence">Elio — Elevating Aesthetic Excellence</title>
+<meta name="description" content="Elio is a curated portfolio of professional aesthetic and beauty products for clinics and skincare professionals." data-i18n-content="elio_is_a_curated_portfolio_of">
+<link rel="icon" type="image/png" href="img/logo.png">
+<!-- First-visit loader (must stay before the stylesheets) -->
+<!-- Language engine (must stay first: sets lang/dir before anything paints) -->
+<script src="js/i18n.js"></script>
+<script src="js/i18n-strings.js"></script>
+<script src="js/loader.js"></script>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/responsive.css">
+<link rel="stylesheet" href="css/hero-split.css">
+<link rel="stylesheet" href="css/categories-carousel.css">
+<link rel="stylesheet" href="css/rtl.css">
+</head>
+<body>
+
+<!-- ============================= HEADER ============================= -->
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a href="index.html" class="brand-mark brand-mark--logo" aria-label="Elio"><img src="img/logo.png" alt="Elio" class="brand-logo"><span class="brand-mark__text js-brand-name">Elio</span></a>
+
+    <nav class="main-nav" aria-label="Primary" data-i18n-aria-label="primary">
+      <div class="nav-item"><a href="index.html" data-i18n="home">Home</a></div>
+      <div class="nav-item"><a href="products.html" data-i18n="products">Products</a></div>
+      <div class="nav-item nav-item--categories">
+        <a href="products.html" data-i18n="categories">Categories</a>
+        <div class="mega-menu js-nav-categories" aria-label="Categories" data-i18n-aria-label="categories"></div>
+      </div>
+      <div class="nav-item"><a href="about.html" data-i18n="about_us">About Us</a></div>
+      <div class="nav-item"><a href="contact.html" data-i18n="contact">Contact</a></div>
+    </nav>
+
+    <div class="nav-actions">
+      <button type="button" class="lang-toggle" data-lang-toggle aria-label="Switch language to Arabic" title="العربية"><span class="lang-toggle__text">عربي</span></button>
+      <button class="icon-btn js-open-search" aria-label="Search products" data-i18n-aria-label="search_products">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <a href="cart.html" class="icon-btn" aria-label="View cart" data-i18n-aria-label="view_cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="21" r="1.3"/><circle cx="18" cy="21" r="1.3"/><path d="M2.5 3h2.4l2.3 12.4a2 2 0 002 1.6h8.6a2 2 0 002-1.6L21 7H6"/></svg>
+        <span class="cart-count js-cart-count">0</span>
+      </a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" data-i18n-aria-label="open_menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============================= MOBILE NAV ============================= -->
+<nav class="mobile-nav" aria-label="Mobile" data-i18n-aria-label="mobile">
+  <a href="index.html" data-i18n="home">Home</a>
+  <a href="products.html" data-i18n="products">Products</a>
+  <a href="about.html" data-i18n="about_us">About Us</a>
+  <a href="contact.html" data-i18n="contact">Contact</a>
+  <div class="mobile-nav__categories js-nav-categories"></div>
+</nav>
+
+<!-- ============================= HERO ============================= -->
+<section class="hero hero--split">
+  <div class="hero__media">
+    <img src="./img/main.jpg" alt="Professional aesthetic treatment room" width="1800" height="1400" data-i18n-alt="professional_aesthetic_treatment_room">
+    <div class="hero__scrim"></div>
+  </div>
+  <div class="container hero__content">
+    <p class="hero__eyebrow" style="color: rgb(160, 21, 2);" data-i18n="professional_aesthetic_beauty_supply">Professional Aesthetic &amp; Beauty Supply</p>
+    <h1 class="hero__title" data-i18n="elevating_aesthetic_excellence">Elevating Aesthetic Excellence.</h1>
+    <p class="hero__desc" data-i18n="a_curated_portfolio_of_professional_grade">A curated portfolio of professional-grade aesthetic and beauty products, selected for clinics and practitioners who expect precision, quality and discretion.</p>
+    <div class="hero__actions">
+      <a href="products.html" class="btn btn--primary" data-i18n="explore_products">Explore Products</a>
+      <a href="about.html" class="btn btn--outline" data-i18n="about_us">About Us</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= STATS BAND ============================= -->
+<section class="stats-band" aria-label="Elio in numbers" data-i18n-aria-label="elio_in_numbers">
+  <div class="stats-band__grid">
+    <div class="stats-band__item">
+      <span class="stats-band__number" data-count-to="500" data-count-suffix="+">150+</span>
+      <span class="stats-band__label" data-i18n="premium_products">Premium Products</span>
+    </div>
+    <div class="stats-band__item">
+      <span class="stats-band__number" data-count-to="50" data-count-suffix="+">40+</span>
+      <span class="stats-band__label" data-i18n="trusted_brands">Trusted Brands</span>
+    </div>
+    <div class="stats-band__item">
+      <span class="stats-band__number" data-count-to="10" data-count-suffix="K+">4K+</span>
+      <span class="stats-band__label" data-i18n="happy_customers">Happy Customers</span>
+    </div>
+    <div class="stats-band__item">
+      <span class="stats-band__number">24/7</span>
+      <span class="stats-band__label" data-i18n="expert_support">Expert Support</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= FEATURED PRODUCTS ============================= -->
+<section class="section section--tight section--taupe">
+  <div class="container">
+    <div class="section__head-row" style="margin-bottom: 32px;">
+      <div class="section__head" style="margin-bottom:0;">
+        <div class="section__eyebrow-line"></div>
+        <h2 data-i18n="featured_products">Featured Products</h2>
+        <p data-i18n="a_selection_currently_highlighted_across_our">A selection currently highlighted across our professional catalog.</p>
+      </div>
+      <a href="products.html" class="btn btn--outline">
+        <span data-i18n="view_all_products">View All Products</span>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:6px;vertical-align:-2px;"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+    <div class="product-grid product-row" id="featured-products-grid"></div>
+  </div>
+</section>
+
+<!-- ============================= CATEGORIES CAROUSEL ============================= -->
+<section class="section">
+  <div class="container">
+    <div class="section__head-row" style="margin-bottom: 40px;">
+      <div class="section__head" style="margin-bottom:0;">
+        <div class="section__eyebrow-line"></div>
+        <h2 data-i18n="our_categories">Our Categories</h2>
+        <p data-i18n="explore_our_professional_portfolio_by_treatment">Explore our professional portfolio by treatment category.</p>
+      </div>
+      <a href="products.html" class="btn btn--outline">
+        <span data-i18n="view_all">View All</span>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:6px;vertical-align:-2px;"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+    <div class="cat-carousel">
+      <button class="cat-carousel__arrow cat-carousel__arrow--prev" id="cat-prev" aria-label="Previous categories" data-i18n-aria-label="previous_categories"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="cat-carousel__track" id="categories-carousel-track"></div>
+      <button class="cat-carousel__arrow cat-carousel__arrow--next" id="cat-next" aria-label="Next categories" data-i18n-aria-label="next_categories"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= WHY CHOOSE US ============================= -->
+<section class="section section--charcoal">
+  <div class="container">
+    <div class="section__head">
+      <div class="section__eyebrow-line"></div>
+      <h2 data-i18n="why_choose_us">Why Choose Us</h2>
+      <p data-i18n="a_supply_partner_built_around_precision">A supply partner built around precision, not volume.</p>
+    </div>
+  </div>
+  <div class="value-grid">
+    <div class="value-item">
+      <div class="value-item__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18M8 4v5"/></svg></div>
+      <h3 data-i18n="curated_product_portfolio">Curated Product Portfolio</h3>
+      <p data-i18n="every_product_in_our_catalog_is">Every product in our catalog is selected with a clear category role in mind, not added for volume alone.</p>
+    </div>
+    <div class="value-item">
+      <div class="value-item__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3l8 4v5c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V7l8-4z"/></svg></div>
+      <h3 data-i18n="professional_focus">Professional Focus</h3>
+      <p data-i18n="built_for_clinics_practitioners_and_skincare">Built for clinics, practitioners and skincare professionals — not general consumer retail.</p>
+    </div>
+    <div class="value-item">
+      <div class="value-item__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 5-5.5"/></svg></div>
+      <h3 data-i18n="quality_oriented_selection">Quality-Oriented Selection</h3>
+      <p data-i18n="products_are_chosen_with_an_emphasis">Products are chosen with an emphasis on formulation quality and consistency across categories.</p>
+    </div>
+    <div class="value-item">
+      <div class="value-item__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 20v-2a6 6 0 0112 0v2"/><circle cx="10" cy="7" r="3.5"/><path d="M17 20v-1.5a4.5 4.5 0 00-3-4.24"/><path d="M14.5 3.6a3.5 3.5 0 010 6.8"/></svg></div>
+      <h3 data-i18n="reliable_support">Reliable Support</h3>
+      <p data-i18n="a_responsive_team_ready_to_assist">A responsive team ready to assist with product information and ordering questions.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= CONTACT CTA ============================= -->
+<section class="contact-cta">
+  <div class="container">
+    <h2 data-i18n="let_s_talk_about_your_product">Let's Talk About Your Product Needs.</h2>
+    <p data-i18n="reach_out_for_product_information_availability">Reach out for product information, availability, or to discuss a professional order.</p>
+    <a href="contact.html" class="btn btn--primary" data-i18n="contact_us">Contact Us</a>
+  </div>
+</section>
+
+<!-- ============================= FOOTER ============================= -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <span class="brand-mark brand-mark--logo footer-logo"><img src="img/logo.png" alt="Elio" class="brand-logo brand-logo--footer"></span>
+        <p class="js-brand-desc">A curated portfolio of professional aesthetic and beauty products, selected for clinics and skincare professionals who expect more.</p>
+        <div class="footer-social">
+          <a href="https://www.instagram.com/elio.cosmetics" class="js-social-instagram" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
+          <a href="https://www.facebook.com/elio.cosmetic/" class="js-social-facebook" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 9h3V6h-3c-2 0-3.5 1.5-3.5 3.5V12H8v3h2.5v6h3v-6H16l.5-3h-3V9.8c0-.5.3-.8.8-.8z"/></svg></a>
+          <a href="#" class="js-social-linkedin" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1"/><path d="M8 11v6M12 11v6M12 13.5c0-1.5 1-2.5 2.5-2.5s2.5 1 2.5 2.5V17"/></svg></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="quick_links">Quick Links</h4>
+        <ul>
+          <li><a href="index.html" data-i18n="home">Home</a></li>
+          <li><a href="products.html" data-i18n="products">Products</a></li>
+          <li><a href="about.html" data-i18n="about_us">About Us</a></li>
+          <li><a href="contact.html" data-i18n="contact">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="categories">Categories</h4>
+        <ul class="js-footer-categories"></ul>
+      </div>
+      <div class="footer-col">
+        <h4 data-i18n="contact">Contact</h4>
+        <address>
+          <a class="js-contact-email" href="#">hello@elio.com</a><br><br>
+          <a class="js-contact-phone" href="#">+1 (555) 019-2044</a><br><br>
+          <span class="js-contact-location">Hadaek Al-Ahram - 118</span>
+        </address>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; <span class="js-year"></span> <span class="js-brand-name">Elio</span>. <span data-i18n="all_rights_reserved">All rights reserved.</span></span>
+      <div class="footer-bottom__links">
+        <a href="privacy.html" data-i18n="privacy_policy">Privacy Policy</a>
+        <a href="terms.html" data-i18n="terms_conditions">Terms &amp; Conditions</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<button class="back-to-top" aria-label="Back to top" data-i18n-aria-label="back_to_top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+
+<!-- ============================= SEARCH OVERLAY ============================= -->
+<div class="search-overlay" id="search-overlay" aria-hidden="true">
+  <div class="search-overlay__panel">
+    <div class="search-overlay__top">
+      <form class="search-overlay__form" id="search-overlay-form">
+        <input type="text" id="search-overlay-input" placeholder="Search products, brands, categories…" autocomplete="off" data-i18n-placeholder="search_products_brands_categories">
+        <button type="button" class="search-overlay__clear" id="search-overlay-clear" aria-label="Clear search" data-i18n-aria-label="clear_search">&times;</button>
+      </form>
+      <button class="search-overlay__close" id="search-overlay-close" aria-label="Close search" data-i18n-aria-label="close_search">&times;</button>
+    </div>
+    <p class="search-overlay__count" id="search-overlay-count" data-i18n="start_typing_to_search_products_brands">Start typing to search products, brands and categories.</p>
+    <div class="search-overlay__results" id="search-overlay-results"></div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/prices.js"></script>
+<script src="js/products.js"></script>
+<script src="js/products-ar.js"></script>
+<script src="js/app.js"></script>
+<script src="js/filters.js"></script>
+<script src="js/search.js"></script>
+<script src="js/categories-carousel.js"></script>
+<script src="js/animations.js"></script>
+</body>
+</html>

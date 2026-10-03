@@ -1,0 +1,32 @@
+
+/* =========================================================================
+   PRIVACY POLICY PAGE (privacy.html) — standalone styles
+   ========================================================================= */
+.legal { max-width: 820px; }
+.legal__updated { font-size: 0.85rem; color: var(--charcoal-soft); margin-bottom: 28px; }
+.legal__toc {
+  background: var(--white);
+  border: 1px solid var(--taupe-line);
+  border-radius: 14px;
+  padding: 22px 28px;
+  margin-bottom: 40px;
+}
+.legal__toc h3 { font-family: var(--font-display); font-weight: 480; font-size: 1.15rem; margin-bottom: 10px; }
+.legal__toc ol { columns: 2; column-gap: 32px; padding-left: 20px; margin: 0; }
+.legal__toc li { margin: 4px 0; break-inside: avoid; }
+.legal__toc a { color: var(--charcoal-soft); }
+.legal__toc a:hover { color: var(--accent-dark); }
+.legal__section { padding-top: 28px; margin-top: 28px; border-top: 1px solid var(--taupe-line); scroll-margin-top: 96px; }
+.legal__section:first-of-type { border-top: 0; margin-top: 0; }
+.legal__section h2 { font-family: var(--font-display); font-weight: 480; font-size: clamp(1.4rem, 2.4vw, 1.8rem); margin-bottom: 14px; }
+.legal__section h3 { font-size: 1rem; font-weight: 700; margin: 18px 0 6px; }
+.legal__section p, .legal__section li { color: var(--charcoal-soft); line-height: 1.75; }
+.legal__section p { margin: 0 0 12px; }
+.legal__section ul { padding-left: 22px; margin: 0 0 12px; }
+.legal__section li { margin: 6px 0; }
+.legal__section a { color: var(--accent-dark); text-decoration: underline; text-underline-offset: 3px; }
+.legal__contact { font-style: normal; line-height: 2; }
+@media (max-width: 640px) { .legal__toc ol { columns: 1; } }
+.legal__toc a.is-active { color: var(--accent-dark); font-weight: 700; }
+.legal__clear { margin-top: 6px; }
+.legal__clear-msg { display: inline-block; margin-left: 12px; font-size: 0.9rem; color: var(--accent-dark); }

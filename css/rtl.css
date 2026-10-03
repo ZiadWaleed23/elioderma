@@ -1,0 +1,154 @@
+/* =========================================================================
+   RTL.CSS — Arabic (right-to-left) layer
+
+   Loaded last on every public page. Every rule is scoped to [dir="rtl"], so
+   the English (left-to-right) site is not affected at all.
+
+   Flexbox and grid flip on their own when dir="rtl" is set on <html> (done by
+   js/i18n.js). This file only handles:
+     - Arabic fonts and typography
+     - things that were positioned with a fixed left / right
+     - arrows and sliding panels that must point / slide the other way
+   ========================================================================= */
+
+/* ---------------------------------------------------------------------
+   1) TYPOGRAPHY
+   Cairo (headings) + Tajawal (body) are loaded by i18n.js in Arabic only.
+   --------------------------------------------------------------------- */
+:root[dir="rtl"] {
+  --font-display: "Cairo", "Segoe UI", Tahoma, sans-serif;
+  --font-body: "Tajawal", "Segoe UI", Tahoma, sans-serif;
+}
+[dir="rtl"] body { line-height: 1.8; }
+/* letter-spacing breaks the joining of Arabic letters */
+[dir="rtl"] *,
+[dir="rtl"] *::before,
+[dir="rtl"] *::after { letter-spacing: 0 !important; }
+/* Arabic glyphs are taller: give headings room so nothing is clipped */
+[dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4 { line-height: 1.4; }
+[dir="rtl"] .hero__title { line-height: 1.3; font-weight: 700; }
+[dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] .cat-card__title,
+[dir="rtl"] .product-card__title, [dir="rtl"] .stats-band__number { font-weight: 700; }
+/* Tajawal runs a little small next to the Latin font — nudge the tiny labels up */
+[dir="rtl"] .product-card__eyebrow, [dir="rtl"] .cart-item__eyebrow,
+[dir="rtl"] .modal-product__eyebrow, [dir="rtl"] .hero__eyebrow,
+[dir="rtl"] .stats-band__label, [dir="rtl"] .search-result__text em,
+[dir="rtl"] .legal__updated, [dir="rtl"] .product-badge { font-size: 0.9em; }
+
+/* Phone numbers, e-mails and links always read left-to-right, even inside Arabic text */
+[dir="rtl"] .js-contact-phone, [dir="rtl"] .js-contact-email,
+[dir="rtl"] a[href^="tel:"], [dir="rtl"] a[href^="mailto:"] {
+  direction: ltr; unicode-bidi: isolate; display: inline-block;
+}
+[dir="rtl"] input[type="tel"], [dir="rtl"] input[type="email"], [dir="rtl"] input[type="number"] {
+  direction: ltr; text-align: right;
+}
+[dir="rtl"] .qty__input { text-align: center; }
+
+/* ---------------------------------------------------------------------
+   2) HEADER + NAVIGATION
+   --------------------------------------------------------------------- */
+[dir="rtl"] .cart-count { right: auto; left: 4px; }
+[dir="rtl"] .nav-item > a::after { transform-origin: right center !important; }
+
+/* mobile menu slides in from the left in Arabic */
+[dir="rtl"] .mobile-nav { transform: translateX(-100%); }
+[dir="rtl"] .mobile-nav.is-open { transform: translateX(0); }
+[dir="rtl"] .mobile-nav__categories { padding-left: 0; padding-right: 12px; }
+
+/* "→" arrows point the other way */
+[dir="rtl"] svg[style*="margin-left"] {
+  margin-left: 0 !important; margin-right: 6px; transform: scaleX(-1);
+}
+[dir="rtl"] .cat-card__cta svg, [dir="rtl"] .search-result__arrow { display: inline-block; transform: scaleX(-1); }
+
+/* ---------------------------------------------------------------------
+   3) HERO (text + arch image)
+   --------------------------------------------------------------------- */
+[dir="rtl"] .hero--split .hero__content {
+  padding: 72px max(var(--gutter), calc((100vw - var(--container)) / 2 + var(--gutter))) 72px 48px;
+}
+[dir="rtl"] .hero--split .hero__media::before { right: auto; left: 0; }
+[dir="rtl"] .hero--split .hero__media img { right: auto; left: 15%; }
+@media (max-width: 1080px) {
+  [dir="rtl"] .hero--split .hero__content { padding: 56px var(--gutter) 40px; }
+}
+@media (max-width: 640px) {
+  [dir="rtl"] .hero--split .hero__content { padding: 44px var(--gutter) 32px; }
+  [dir="rtl"] .hero--split .hero__media img { right: auto; left: 12%; }
+}
+
+/* ---------------------------------------------------------------------
+   4) STATS BAND
+   --------------------------------------------------------------------- */
+[dir="rtl"] .stats-band__item + .stats-band__item::before { left: auto; right: 0; }
+@media (max-width: 1080px) {
+  [dir="rtl"] .stats-band__item:nth-child(even)::before { left: auto; right: 0; }
+}
+
+/* ---------------------------------------------------------------------
+   5) PRODUCT CARDS
+   --------------------------------------------------------------------- */
+[dir="rtl"] .product-badge { left: auto; right: 12px; }
+[dir="rtl"] .cart-btn { right: auto; left: 10px; }
+
+/* ---------------------------------------------------------------------
+   6) PRODUCTS PAGE (search box, filters, sliding filter panel)
+   --------------------------------------------------------------------- */
+[dir="rtl"] .catalog-search input { padding: 12px 40px 12px 16px; }
+[dir="rtl"] .catalog-search svg { left: auto; right: 14px; }
+[dir="rtl"] .filter-pill { text-align: right; }
+@media (max-width: 1080px) {
+  [dir="rtl"] #filter-panel { right: auto; left: 0; transform: translateX(-100%); }
+  [dir="rtl"] #filter-panel.is-open { transform: translateX(0); }
+  [dir="rtl"] .filter-panel__apply { right: auto; left: 0; transform: translateX(-100%); }
+  [dir="rtl"] #filter-panel.is-open ~ .filter-panel__apply,
+  [dir="rtl"] .filter-panel__apply.is-open { transform: translateX(0); }
+}
+
+/* ---------------------------------------------------------------------
+   7) PRODUCT MODAL
+   --------------------------------------------------------------------- */
+[dir="rtl"] .modal__close { right: auto; left: 20px; }
+[dir="rtl"] .modal-product__specs th, [dir="rtl"] .modal-product__specs td { text-align: right; }
+
+/* ---------------------------------------------------------------------
+   8) SEARCH OVERLAY
+   --------------------------------------------------------------------- */
+[dir="rtl"] .search-overlay__form input { padding: 18px 22px 18px 50px; }
+[dir="rtl"] .search-overlay__clear { right: auto; left: 18px; }
+[dir="rtl"] .search-result { text-align: right; }
+
+/* ---------------------------------------------------------------------
+   9) CART PAGE
+   --------------------------------------------------------------------- */
+[dir="rtl"] .cart-item__total { text-align: left; }
+
+/* ---------------------------------------------------------------------
+   10) PRIVACY + TERMS
+   --------------------------------------------------------------------- */
+[dir="rtl"] .legal__toc ol { padding-left: 0; padding-right: 20px; }
+[dir="rtl"] .legal__section ul { padding-left: 0; padding-right: 22px; }
+[dir="rtl"] .legal__clear-msg { margin-left: 0; margin-right: 12px; }
+
+/* ---------------------------------------------------------------------
+   11) CATEGORIES CAROUSEL
+   The auto-scrolling track keeps left-to-right flow (its scroll maths
+   assumes it); the text inside each card is right-to-left as usual.
+   --------------------------------------------------------------------- */
+[dir="rtl"] .cat-carousel__track { direction: ltr; }
+[dir="rtl"] .cat-card { direction: rtl; text-align: right; }
+
+/* ---------------------------------------------------------------------
+   12) BACK-TO-TOP BUTTON
+   --------------------------------------------------------------------- */
+[dir="rtl"] .back-to-top { right: auto; left: 24px; }
+@media (max-width: 640px) {
+  [dir="rtl"] .back-to-top { right: auto; left: 16px; }
+}
+
+/* ---------------------------------------------------------------------
+   13) FIRST-VISIT LOADER — keep its animation layout untouched
+   --------------------------------------------------------------------- */
+[dir="rtl"] #ld, [dir="rtl"] #ld * { direction: ltr; }
+[dir="rtl"] #ld .ld-status, [dir="rtl"] #ld .ld-brand { font-family: var(--font-body); }

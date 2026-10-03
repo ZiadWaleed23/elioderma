@@ -1,0 +1,117 @@
+/* =========================================================================
+   Elio — CATEGORIES CAROUSEL (بديل سكشن Best Sellers في الصفحة الرئيسية)
+   ملف إضافي مستقل. للإلغاء: شيل السكشن + ال link + ال script من index.html
+   ========================================================================= */
+
+.cat-carousel { position: relative; }
+
+.cat-carousel__track {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-behavior: auto;   /* الحركة السلسة بتتحكم فيها JS (requestAnimationFrame) */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 4px 0 8px;
+}
+.cat-carousel__track::-webkit-scrollbar { display: none; }
+
+/* ---------- CARD ---------- */
+.cat-card {
+  position: relative;
+  flex: 0 0 calc((100% - 72px) / 4);   /* 4 cards on desktop */
+  aspect-ratio: 4 / 5;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  color: #fff;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  text-align: center;
+  isolation: isolate;
+  box-shadow: 0 10px 30px rgba(58,42,77,0.14);
+  transition: transform .5s var(--ease), box-shadow .5s var(--ease);
+}
+.cat-card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(58,42,77,0.22); }
+
+.cat-card__img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: -2;
+  transition: transform .8s var(--ease);
+}
+.cat-card:hover .cat-card__img { transform: scale(1.07); }
+
+.cat-card::before {              /* scrim */
+  content: "";
+  position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(180deg, rgba(58,42,77,0.10) 0%, rgba(58,42,77,0.35) 45%, rgba(58,42,77,0.80) 100%);
+}
+
+.cat-card__body { padding: 28px 22px 30px; }
+.cat-card__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.35rem, 1.8vw, 1.7rem);
+  line-height: 1.15;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.35);
+}
+.cat-card__desc {
+  font-size: 0.86rem;
+  line-height: 1.5;
+  opacity: .92;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cat-card__cta {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 16px;
+  font-size: 0.78rem; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: background .3s var(--ease), color .3s var(--ease);
+}
+.cat-card:hover .cat-card__cta { background: #fff; color: var(--charcoal); }
+
+/* ---------- ARROWS ---------- */
+.cat-carousel__arrow {
+  position: absolute;
+  top: 50%; translate: 0 -50%;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: none; cursor: pointer;
+  background: rgba(255,255,255,0.92);
+  color: var(--charcoal);
+  display: grid; place-items: center;
+  box-shadow: 0 6px 20px rgba(58,42,77,0.22);
+  z-index: 5;
+  transition: background .3s var(--ease), opacity .3s var(--ease), scale .3s var(--ease);
+}
+.cat-carousel__arrow:hover { background: var(--accent); scale: 1.06; }
+.cat-carousel__arrow svg { width: 20px; height: 20px; }
+.cat-carousel__arrow--prev { left: -16px; }
+.cat-carousel__arrow--next { right: -16px; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 1080px) {
+  .cat-card { flex-basis: calc((100% - 48px) / 3); }
+  .cat-carousel__arrow--prev { left: -8px; }
+  .cat-carousel__arrow--next { right: -8px; }
+}
+@media (max-width: 760px) {
+  .cat-card { flex-basis: calc((100% - 20px) / 2); }
+  .cat-carousel__track { gap: 20px; }
+}
+@media (max-width: 480px) {
+  .cat-card { flex-basis: 78%; }
+  .cat-carousel__arrow { width: 40px; height: 40px; }
+}
