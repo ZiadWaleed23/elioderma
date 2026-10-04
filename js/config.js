@@ -25,7 +25,7 @@ const SITE_CONFIG = {
   // CONTACT & SOCIAL — placeholders, replace with real details
   // ---------------------------------------------------------------------
   contact: {
-    email: "hello@elio.com",
+    email: "elioo.cosmetics@gmail.com",
     phone: "+201050208206",
     whatsapp: "+201050208206",
     whatsappLink: "https://wa.me/201050208206",
@@ -36,8 +36,8 @@ const SITE_CONFIG = {
   },
 
   social: {
-    instagram: "https://www.instagram.com/elio.cosmetics/",
-    facebook: "https://www.facebook.com/elio.cosmetic/",
+    instagram: "https://www.instagram.com/elioderma/",
+    facebook: "https://www.facebook.com/elioderma",
     linkedin: "https://linkedin.com/company/elio"
   },
 
