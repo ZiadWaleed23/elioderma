@@ -318,3 +318,86 @@ I18N.add("ar", {
 
   "js.cleared": "تم مسح العربة وبيانات إتمام الطلب المحفوظة."
 });
+
+
+/* ------------------------------------------------------------------------
+   3) PRODUCTS PAGE (js/shop.js + the shop section of products.html)
+   Used both by data-i18n="shop.*" in the HTML and by I18N.t("shop.*") in JS.
+   ------------------------------------------------------------------------ */
+I18N.add("en", {
+  "shop.sort": "Sort",
+  "shop.sort_featured": "Featured first",
+  "shop.sort_newest": "Newest",
+  "shop.sort_price_asc": "Price: low to high",
+  "shop.sort_price_desc": "Price: high to low",
+  "shop.sort_name": "Name A–Z",
+  "shop.price": "Price ({cur})",
+  "shop.min": "Min",
+  "shop.max": "Max",
+  "shop.cart_title": "Your cart",
+  "shop.close_cart": "Close cart",
+  "shop.cart_empty": "Your cart is empty.",
+  "shop.total": "Total",
+  "shop.discount": "Discount ({pct}%)",
+  "shop.cart_note": "Your order is confirmed by our team on WhatsApp after you send it.",
+  "shop.send_wa": "Send order on WhatsApp",
+  "shop.view_cart": "View full cart",
+  "shop.clear_cart": "Clear cart",
+  "shop.added": "Added to cart",
+  "shop.checkout": "Continue to checkout",
+  "shop.details_title": "Your details",
+  "shop.details_hint": "Enter your details and we will send your order to our team on WhatsApp.",
+  "shop.f_name": "Full name",
+  "shop.f_phone": "Phone / WhatsApp",
+  "shop.f_email": "Email",
+  "shop.f_address": "Delivery address",
+  "shop.f_notes": "Notes",
+  "shop.optional": "(optional)",
+  "shop.back": "Back to cart",
+  "shop.discount_more": "Add {amount} more to get {pct}% off",
+  "shop.discount_unlocked": "You've unlocked the {pct}% discount!",
+  "shop.share": "Share:",
+  "shop.copy_link": "Copy link",
+  "shop.share_wa": "WhatsApp",
+  "shop.link_copied": "Link copied",
+  "shop.copy_failed": "Couldn't copy the link"
+});
+
+I18N.add("ar", {
+  "shop.sort": "الترتيب",
+  "shop.sort_featured": "المميّز أولًا",
+  "shop.sort_newest": "الأحدث",
+  "shop.sort_price_asc": "السعر: من الأقل للأعلى",
+  "shop.sort_price_desc": "السعر: من الأعلى للأقل",
+  "shop.sort_name": "الاسم (A–Z)",
+  "shop.price": "السعر ({cur})",
+  "shop.min": "الأدنى",
+  "shop.max": "الأقصى",
+  "shop.cart_title": "عربتك",
+  "shop.close_cart": "إغلاق العربة",
+  "shop.cart_empty": "عربتك فارغة.",
+  "shop.total": "الإجمالي",
+  "shop.discount": "الخصم ({pct}%)",
+  "shop.cart_note": "يؤكد فريقنا طلبك عبر واتساب بعد إرساله.",
+  "shop.send_wa": "أرسل الطلب عبر واتساب",
+  "shop.view_cart": "عرض العربة كاملة",
+  "shop.clear_cart": "إفراغ العربة",
+  "shop.added": "تمت الإضافة إلى العربة",
+  "shop.checkout": "متابعة إتمام الطلب",
+  "shop.details_title": "بياناتك",
+  "shop.details_hint": "اكتب بياناتك وسنرسل طلبك إلى فريقنا عبر واتساب.",
+  "shop.f_name": "الاسم الكامل",
+  "shop.f_phone": "الهاتف / واتساب",
+  "shop.f_email": "البريد الإلكتروني",
+  "shop.f_address": "عنوان التوصيل",
+  "shop.f_notes": "ملاحظات",
+  "shop.optional": "(اختياري)",
+  "shop.back": "الرجوع إلى العربة",
+  "shop.discount_more": "أضف {amount} للحصول على خصم {pct}%",
+  "shop.discount_unlocked": "مبروك! حصلت على خصم {pct}%",
+  "shop.share": "مشاركة:",
+  "shop.copy_link": "نسخ الرابط",
+  "shop.share_wa": "واتساب",
+  "shop.link_copied": "تم نسخ الرابط",
+  "shop.copy_failed": "تعذّر نسخ الرابط"
+});

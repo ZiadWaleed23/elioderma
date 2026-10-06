@@ -16,7 +16,7 @@
   }
 
   /* "Clear my saved data" button: removes the cart + saved checkout details
-     this site keeps in the visitor's browser (same keys used by app.js / cart.js). */
+     this site keeps in the visitor's browser (same keys used by app.js / shop-ui.js). */
   const KEYS = ["Elio_cart", "Elio_customer"];
   const btn = document.getElementById("clear-local-data");
   const msg = document.getElementById("clear-local-msg");
