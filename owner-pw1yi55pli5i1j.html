@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>لوحة تحكم Elio</title>
+<link rel="icon" type="image/png" href="img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/owner.css">
+<script>document.documentElement.classList.add("is-ar");</script>
+</head>
+<body class="owner">
+<div id="app"></div>
+<div class="o-toast" id="toast" hidden></div>
+
+<script src="js/config.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/products.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const app = $("#app");
+const CFG = window.ELIO_FIREBASE || {};
+const CATS = SITE_CONFIG.categories;
+const BRANDS = SITE_CONFIG.brands || [];
+const toast = (m) => { const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 2600); };
+const fmt = n => n ? Number(n).toLocaleString("en-US") : "—";
+
+/* ---------- not configured yet ---------- */
+if (!CFG.projectId || !CFG.apiKey) {
+  app.innerHTML = `<div class="o-login"><div class="o-login__card"><img src="img/logo.png" alt=""><h1>لوحة التحكم غير مفعّلة بعد</h1>
+    <p class="o-note o-note--warn">لازم تضيف بيانات Firebase في الملف <b dir="ltr">js/firebase-config.js</b> الأول. الخطوات كلها في ملف <b dir="ltr">FIREBASE_SETUP.md</b>.</p></div></div>`;
+  throw new Error("Firebase not configured");
+}
+
+const fb = initializeApp(CFG);
+const auth = getAuth(fb);
+const db = getFirestore(fb);
+
+let unsubP = null, unsubS = null;
+let products = [], settings = {}, filterQ = "", filterCat = "";
+
+/* ---------- login ---------- */
+function showLogin(msg) {
+  if (unsubP) unsubP(); if (unsubS) unsubS();
+  app.innerHTML = `<div class="o-login"><form class="o-login__card" id="lf" novalidate>
+    <img src="img/logo.png" alt=""><h1>دخول المالك</h1>
+    <div class="o-f"><label for="em">البريد الإلكتروني</label><input id="em" type="text" inputmode="email" autocomplete="username" dir="ltr"></div>
+    <div class="o-f"><label for="pw">كلمة المرور</label><input id="pw" type="password" autocomplete="current-password" dir="ltr"></div>
+    <p class="o-err" id="err" role="alert">${esc(msg || "")}</p>
+    <button class="o-btn" type="submit" id="go">تسجيل الدخول</button></form></div>`;
+  $("#em").focus();
+  $("#lf").addEventListener("submit", async e => {
+    e.preventDefault();
+    const em = $("#em").value.trim(), pw = $("#pw").value;
+    if (!em || !pw) { $("#err").textContent = "اكتب البريد وكلمة المرور."; return; }
+    $("#go").disabled = true; $("#err").textContent = "";
+    try { await signInWithEmailAndPassword(auth, em, pw); }
+    catch (er) {
+      const m = { "auth/invalid-credential": "البريد أو كلمة المرور غير صحيحة.", "auth/wrong-password": "البريد أو كلمة المرور غير صحيحة.", "auth/user-not-found": "البريد أو كلمة المرور غير صحيحة.", "auth/invalid-email": "صيغة البريد غير صحيحة.", "auth/too-many-requests": "محاولات كتير. استنى شوية وجرّب تاني.", "auth/network-request-failed": "مفيش اتصال بالإنترنت." };
+      $("#err").textContent = m[er.code] || "تعذّر تسجيل الدخول.";
+      $("#go").disabled = false;
+    }
+  });
+}
+
+/* ---------- dashboard shell ---------- */
+function showApp(user) {
+  app.innerHTML = `<header class="o-bar"><div class="wrap o-bar__in">
+      <h1><img class="o-logo" src="img/logo.png" alt="">لوحة تحكم Elio</h1>
+      <span>${esc(user.email)}</span><a href="index.html" target="_blank" rel="noopener">عرض الموقع</a><button id="out" type="button">خروج</button></div></header>
+    <div class="wrap o-wrap">
+      <div class="o-tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="p">المنتجات</button><button role="tab" aria-selected="false" data-tab="s">الإعدادات</button></div>
+      <section id="tabP"></section><section id="tabS" hidden></section></div>
+    <div class="o-dlg" id="dlg" hidden></div>`;
+  $("#out").onclick = () => signOut(auth);
+  $$("[data-tab]").forEach(b => b.onclick = () => {
+    $$("[data-tab]").forEach(x => x.setAttribute("aria-selected", x === b));
+    $("#tabP").hidden = b.dataset.tab !== "p"; $("#tabS").hidden = b.dataset.tab !== "s";
+  });
+  unsubP = onSnapshot(collection(db, "products"), snap => { products = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderProducts(); },
+    err => { $("#tabP").innerHTML = `<p class="o-note o-note--warn">تعذّرت قراءة المنتجات (${esc(err.code)}). راجع قواعد الأمان في Firebase.</p>`; });
+  unsubS = onSnapshot(doc(db, "settings", "site"), s => { settings = s.exists() ? s.data() : {}; renderSettings(); });
+  renderProducts(); renderSettings();
+}
+
+/* ---------- products tab ---------- */
+function renderProducts() {
+  const box = $("#tabP"); if (!box) return;
+  const hadFocus = document.activeElement && document.activeElement.id === "q";
+  const q = filterQ.toLowerCase();
+  const list = products.filter(p => (!filterCat || p.category === filterCat) && (!q || [p.name, p.brandName, p.brand, p.subcategory].join(" ").toLowerCase().includes(q)))
+    .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  const seed = (!products.length && typeof PRODUCTS !== "undefined") ? `<div class="o-seed"><p><b>قاعدة البيانات فاضية.</b> تقدر تستورد الكتالوج الحالي (${PRODUCTS.length} منتج) بضغطة واحدة، وبعدها تعدّل أي حاجة من هنا.</p><button class="o-btn" id="seed" type="button">استيراد الكتالوج الحالي</button></div>` : "";
+  box.innerHTML = seed + `<div class="o-tools">
+      <input id="q" type="search" placeholder="ابحث بالاسم أو الماركة…" value="${esc(filterQ)}" aria-label="بحث">
+      <select id="fc" aria-label="القسم"><option value="">كل الأقسام</option>${CATS.map(c => `<option value="${c.id}" ${filterCat === c.id ? "selected" : ""}>${esc(c.name_ar)}</option>`).join("")}</select>
+      <span class="o-count">${list.length} منتج</span>
+      <button class="o-btn" id="add" type="button">+ إضافة منتج</button></div>
+    <div class="o-table-wrap"><table class="o-table"><thead><tr><th></th><th>المنتج</th><th>القسم</th><th>السعر (ج.م)</th><th>الحالة</th><th></th></tr></thead><tbody>
+    ${list.map(p => `<tr data-id="${esc(p.id)}">
+      <td><img src="${esc(p.image || "img/logo.png")}" alt="" loading="lazy"></td>
+      <td class="nm"><strong>${esc(p.name)}</strong><em>${esc(p.brandName || (BRANDS.find(b => b.id === p.brand) || {}).name || p.brand || "")}</em></td>
+      <td>${esc((CATS.find(c => c.id === p.category) || {}).name_ar || p.category || "")}</td>
+      <td><input class="o-price" type="number" min="0" step="any" inputmode="decimal" value="${p.price > 0 ? p.price : ""}" placeholder="عند الطلب" data-price aria-label="السعر"></td>
+      <td><div class="o-sw"><label class="o-sw"><input type="checkbox" data-f="featured" ${p.featured ? "checked" : ""}>مميز</label></div>
+          <div class="o-sw"><label class="o-sw"><input type="checkbox" data-f="bestseller" ${p.bestseller ? "checked" : ""}>الأكثر مبيعًا</label></div>
+          <div class="o-sw"><label class="o-sw"><input type="checkbox" data-f="hidden" ${p.hidden ? "checked" : ""}>مخفي</label></div></td>
+      <td><div class="o-act"><button type="button" data-edit>تعديل</button><button type="button" class="del" data-del>حذف</button></div></td></tr>`).join("")}
+    </tbody></table></div>`;
+  if (hadFocus) { const el = $("#q"); el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+  $("#q").oninput = e => { filterQ = e.target.value.trim(); renderProducts(); };
+  $("#fc").onchange = e => { filterCat = e.target.value; renderProducts(); };
+  $("#add").onclick = () => openForm(null);
+  const sb = $("#seed"); if (sb) sb.onclick = seedCatalog;
+}
+
+$("#app").addEventListener("change", async e => {
+  const tr = e.target.closest("tr[data-id]"); if (!tr) return;
+  const id = tr.dataset.id;
+  try {
+    if (e.target.matches("[data-price]")) {
+      const raw = e.target.value.trim(), n = raw === "" ? null : Number(raw);
+      if (n !== null && (!isFinite(n) || n < 0)) { e.target.classList.add("is-err"); return; }
+      await updateDoc(doc(db, "products", id), { price: n });
+      e.target.classList.remove("is-err"); e.target.classList.add("is-saved"); setTimeout(() => e.target.classList.remove("is-saved"), 1200);
+      toast("تم حفظ السعر");
+    } else if (e.target.matches("[data-f]")) {
+      await updateDoc(doc(db, "products", id), { [e.target.dataset.f]: e.target.checked });
+      toast("تم الحفظ");
+    }
+  } catch (er) { toast("تعذّر الحفظ: " + (er.code || er.message)); }
+});
+$("#app").addEventListener("click", async e => {
+  const tr = e.target.closest("tr[data-id]"); if (!tr) return;
+  const p = products.find(x => x.id === tr.dataset.id); if (!p) return;
+  if (e.target.matches("[data-edit]")) openForm(p);
+  if (e.target.matches("[data-del]") && confirm(`حذف "${p.name}" نهائيًا؟`)) {
+    try { await deleteDoc(doc(db, "products", p.id)); toast("تم الحذف"); } catch (er) { toast("تعذّر الحذف"); }
+  }
+});
+
+async function seedCatalog() {
+  const btn = $("#seed"); btn.disabled = true; btn.textContent = "جارٍ الاستيراد…";
+  try {
+    for (let i = 0; i < PRODUCTS.length; i += 400) {
+      const b = writeBatch(db);
+      PRODUCTS.slice(i, i + 400).forEach(p => b.set(doc(db, "products", p.id), { ...p, gallery: p.gallery || [], price: p.price > 0 ? p.price : null }));
+      await b.commit();
+    }
+    toast("تم استيراد الكتالوج");
+  } catch (er) { toast("تعذّر الاستيراد: " + (er.code || er.message)); btn.disabled = false; btn.textContent = "استيراد الكتالوج الحالي"; }
+}
+
+/* ---------- add / edit form ---------- */
+function slug(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "product"; }
+function resize(file, max = 900) {
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height);
+      let q = 0.84, d = c.toDataURL("image/webp", q);
+      if (!d.startsWith("data:image/webp")) d = c.toDataURL("image/jpeg", q);
+      while (d.length > 260000 && q > 0.4) { q -= 0.1; d = c.toDataURL(d.startsWith("data:image/webp") ? "image/webp" : "image/jpeg", q); }
+      URL.revokeObjectURL(url); res(d);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error("img")); };
+    img.src = url;
+  });
+}
+
+function openForm(p) {
+  const isNew = !p;
+  const d = p || { category: CATS[0].id, gallery: [] };
+  const known = new Set(BRANDS.map(b => b.id));
+  const extra = [...new Set(products.filter(x => x.brand && !known.has(x.brand)).map(x => x.brand + "|" + (x.brandName || x.brand)))].map(s => s.split("|"));
+  const brandOpts = BRANDS.map(b => [b.id, b.name]).concat(extra).sort((a, b) => a[1].localeCompare(b[1]));
+  let img = d.image || "", gal = (d.gallery || []).slice();
+  const dlg = $("#dlg");
+  dlg.hidden = false;
+  dlg.innerHTML = `<form class="o-form" id="pf" novalidate>
+    <h2>${isNew ? "إضافة منتج" : "تعديل المنتج"}</h2>
+    <div class="o-f full"><label for="pn">اسم المنتج (بالإنجليزي) *</label><input id="pn" type="text" dir="ltr" value="${esc(d.name || "")}"></div>
+    <div class="o-f"><label for="pb">الماركة *</label><select id="pb">${brandOpts.map(([id, n]) => `<option value="${esc(id)}" ${d.brand === id ? "selected" : ""}>${esc(n)}</option>`).join("")}<option value="__new">ماركة جديدة…</option></select></div>
+    <div class="o-f"><label for="pbn">اسم الماركة الجديدة</label><input id="pbn" type="text" dir="ltr" disabled placeholder="مثال: Revolax"></div>
+    <div class="o-f"><label for="pc">القسم *</label><select id="pc">${CATS.map(c => `<option value="${c.id}" ${d.category === c.id ? "selected" : ""}>${esc(c.name_ar)}</option>`).join("")}</select></div>
+    <div class="o-f"><label for="ps">النوع الفرعي</label><input id="ps" type="text" dir="ltr" value="${esc(d.subcategory || "")}"></div>
+    <div class="o-f"><label for="pp">السعر (ج.م)</label><input id="pp" type="number" min="0" step="any" inputmode="decimal" value="${d.price > 0 ? d.price : ""}"><small>سيبه فاضي لو السعر "عند الطلب".</small></div>
+    <div class="o-f"><label>&nbsp;</label><div class="o-checks"><label class="o-sw"><input type="checkbox" id="pf1" ${d.featured ? "checked" : ""}>مميز</label><label class="o-sw"><input type="checkbox" id="pf2" ${d.bestseller ? "checked" : ""}>الأكثر مبيعًا</label><label class="o-sw"><input type="checkbox" id="pf4" ${d.hidden ? "checked" : ""}>مخفي</label></div></div>
+    <div class="o-f full"><label for="pd">الوصف (إنجليزي)</label><textarea id="pd" rows="3" dir="ltr">${esc(d.description || "")}</textarea><small>اكتب معلومات مؤكدة فقط (النوع، الحجم، الماركة). متكتبش ادعاءات طبية غير موثقة.</small></div>
+    <div class="o-f full"><label for="pda">الوصف (عربي) — اختياري</label><textarea id="pda" rows="3">${esc(d.description_ar || "")}</textarea></div>
+    <div class="o-f full"><label>الصورة الرئيسية</label><div class="o-imgs" id="mainImg"></div></div>
+    <div class="o-f full"><label>صور إضافية (حتى 3)</label><div class="o-imgs" id="galImg"></div></div>
+    <p class="o-err full" id="pe" role="alert"></p>
+    <div class="o-form__foot"><button class="o-btn" type="submit" id="save">حفظ</button><button class="o-btn o-btn--line" type="button" id="cancel">إلغاء</button></div></form>`;
+
+  const paintImgs = () => {
+    $("#mainImg").innerHTML = (img ? `<figure><img src="${esc(img)}" alt=""><button type="button" data-rm-main aria-label="حذف">×</button></figure>` : "") + `<label class="add">${img ? "تغيير" : "رفع صورة"}<input type="file" accept="image/*" hidden id="fMain"></label>`;
+    $("#galImg").innerHTML = gal.map((g, i) => `<figure><img src="${esc(g)}" alt=""><button type="button" data-rm-gal="${i}" aria-label="حذف">×</button></figure>`).join("") + (gal.length < 3 ? `<label class="add">+ صورة<input type="file" accept="image/*" hidden id="fGal"></label>` : "");
+  };
+  paintImgs();
+  $("#pb").onchange = e => { const n = e.target.value === "__new"; $("#pbn").disabled = !n; if (n) $("#pbn").focus(); };
+  if (!brandOpts.length || !d.brand) { /* default first */ }
+  dlg.onchange = async e => {
+    if (e.target.id === "fMain" || e.target.id === "fGal") {
+      const f = e.target.files[0]; if (!f) return;
+      try { const data = await resize(f); if (e.target.id === "fMain") img = data; else gal.push(data); paintImgs(); }
+      catch { $("#pe").textContent = "تعذّر قراءة الصورة. جرّب ملف JPG أو PNG."; }
+    }
+  };
+  dlg.onclick = e => {
+    if (e.target === dlg || e.target.id === "cancel") { dlg.hidden = true; dlg.innerHTML = ""; }
+    if (e.target.matches("[data-rm-main]")) { img = ""; paintImgs(); }
+    if (e.target.matches("[data-rm-gal]")) { gal.splice(Number(e.target.dataset.rmGal), 1); paintImgs(); }
+  };
+  $("#pf").onsubmit = async e => {
+    e.preventDefault();
+    const name = $("#pn").value.trim(), cat = $("#pc").value, err = $("#pe");
+    let brand = $("#pb").value, brandName = "";
+    if (brand === "__new") { brandName = $("#pbn").value.trim(); if (!brandName) { err.textContent = "اكتب اسم الماركة الجديدة."; return; } brand = slug(brandName); }
+    else if (!known.has(brand)) { brandName = (brandOpts.find(b => b[0] === brand) || [])[1] || ""; }
+    if (name.length < 2) { err.textContent = "اكتب اسم المنتج."; return; }
+    const rawP = $("#pp").value.trim(), price = rawP === "" ? null : Number(rawP);
+    if (price !== null && (!isFinite(price) || price < 0)) { err.textContent = "السعر غير صحيح."; return; }
+    const data = { name, brand, brandName, category: cat, subcategory: $("#ps").value.trim(), price, description: $("#pd").value.trim(), description_ar: $("#pda").value.trim(), image: img, gallery: gal,
+      featured: $("#pf1").checked, bestseller: $("#pf2").checked, hidden: $("#pf4").checked };
+    if (JSON.stringify(data).length > 900000) { err.textContent = "الصور كبيرة قوي. قلّل عدد الصور أو استخدم صور أصغر."; return; }
+    const id = isNew ? slug(name) + "-" + Math.random().toString(36).slice(2, 6) : p.id;
+    if (isNew) { data.id = id; data.dateAdded = new Date().toISOString().slice(0, 10); data.tags = []; }
+    $("#save").disabled = true; err.textContent = "";
+    try { await setDoc(doc(db, "products", id), data, { merge: true }); dlg.hidden = true; dlg.innerHTML = ""; toast(isNew ? "تمت إضافة المنتج" : "تم حفظ التعديلات"); }
+    catch (er) { err.textContent = "تعذّر الحفظ: " + (er.code || er.message); $("#save").disabled = false; }
+  };
+  $("#pn").focus();
+}
+
+/* ---------- settings tab ---------- */
+function renderSettings() {
+  const box = $("#tabS"); if (!box) return;
+  if (box.contains(document.activeElement) && document.activeElement.tagName === "INPUT") return;
+  const cur = settings.discount || SITE_CONFIG.discount || {};
+  box.innerHTML = `<form class="o-set" id="sf"><h2>خصم الكمية</h2>
+    <p class="o-note">لما إجمالي الطلب يوصل للحد الأدنى، الخصم بيتطبّق تلقائيًا في سلة الموقع.</p>
+    <div class="o-f"><label for="sth">الحد الأدنى للطلب (ج.م)</label><input id="sth" type="number" min="0" value="${cur.threshold ?? ""}"></div>
+    <div class="o-f"><label for="spc">نسبة الخصم (%)</label><input id="spc" type="number" min="0" max="100" value="${cur.percent ?? ""}"></div>
+    <button class="o-btn" type="submit">حفظ الإعدادات</button></form>`;
+  $("#sf").onsubmit = async e => {
+    e.preventDefault();
+    const th = Number($("#sth").value), pc = Number($("#spc").value);
+    if (!(th >= 0) || !(pc >= 0 && pc <= 100)) { toast("راجع القيم المدخلة"); return; }
+    try { await setDoc(doc(db, "settings", "site"), { discount: { threshold: th, percent: pc } }, { merge: true }); toast("تم حفظ الإعدادات"); }
+    catch (er) { toast("تعذّر الحفظ: " + (er.code || er.message)); }
+  };
+}
+
+onAuthStateChanged(auth, u => { u ? showApp(u) : showLogin(); });
+</script>
+</body>
+</html>
