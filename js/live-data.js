@@ -16,6 +16,8 @@
    To save Firestore reads, a browser that already has a saved copy only asks
    Firestore again after 5 minutes (add ?fresh=1 to a page address to force an
    immediate check, e.g. right after you change something and want to see it).
+   The same settings document can also switch on an announcement bar (set from
+   the owner dashboard). It is only drawn when the owner turns it on.
    If Firestore is unreachable, empty, or anything fails, the page simply keeps
    showing what it already has. It can never leave the site blank.
    ========================================================================= */
@@ -79,6 +81,50 @@
     return true;
   }
 
+  /* ---- announcement bar (owner turns it on from the dashboard) ---------- */
+  var SKEY = "Elio_live_settings", CLOSED = "Elio_ann_closed";
+  function readSettings() { try { return JSON.parse(localStorage.getItem(SKEY)) || {}; } catch (e) { return {}; } }
+
+  function drawAnnouncement(settings) {
+    var a = settings && settings.announcement;
+    if (!a || !a.enabled) return;
+    var lang; try { lang = localStorage.getItem("Elio_lang"); } catch (e) {}
+    var ar = lang === "ar";
+    var text = String((ar ? (a.text_ar || a.text) : (a.text || a.text_ar)) || "").trim();
+    if (!text) return;
+    var id = hash(text + "|" + (a.link || ""));
+    try { if (sessionStorage.getItem(CLOSED) === id) return; } catch (e) {}
+
+    if (!document.getElementById("elio-ann-style")) {
+      var st = document.createElement("style"); st.id = "elio-ann-style";
+      st.textContent = ".elio-ann{position:relative;z-index:501;display:flex;align-items:center;justify-content:center;gap:12px;" +
+        "padding:10px 48px;background:var(--charcoal,#3A2A4D);color:#fff;font:500 .9rem/1.45 var(--font-body,system-ui,sans-serif);text-align:center}" +
+        ".elio-ann a{color:inherit;text-decoration:underline;text-underline-offset:3px}" +
+        ".elio-ann button{position:absolute;inset-block:0;inset-inline-end:8px;width:36px;background:none;border:0;color:inherit;font-size:1.4rem;line-height:1;cursor:pointer;opacity:.8}" +
+        ".elio-ann button:hover{opacity:1}";
+      document.head.appendChild(st);
+    }
+    var bar = document.createElement("div");
+    bar.className = "elio-ann"; bar.setAttribute("role", "region"); bar.setAttribute("aria-label", ar ? "إعلان" : "Announcement");
+    bar.dir = ar ? "rtl" : "ltr";
+    var link = String(a.link || "").trim();
+    var okLink = /^(https?:\/\/|\/(?!\/)|[a-z0-9][a-z0-9._-]*\.html)/i.test(link);
+    var msg = document.createElement(okLink ? "a" : "span");
+    msg.textContent = text;                                   // text only: never HTML
+    if (okLink) { msg.href = link; if (/^https?:/i.test(link)) { msg.target = "_blank"; msg.rel = "noopener"; } }
+    var x = document.createElement("button");
+    x.type = "button"; x.textContent = "\u00d7"; x.setAttribute("aria-label", ar ? "إغلاق" : "Close");
+    x.onclick = function () { try { sessionStorage.setItem(CLOSED, id); } catch (e) {} bar.remove(); };
+    bar.appendChild(msg); bar.appendChild(x);
+    /* the bar pushes the page down; stop the browser from "anchoring" (scrolling) to compensate */
+    var root = document.documentElement, prev = root.style.overflowAnchor;
+    root.style.overflowAnchor = "none";
+    document.body.insertBefore(bar, document.body.firstChild);
+    setTimeout(function () { root.style.overflowAnchor = prev; }, 1500);
+  }
+  function whenReady(fn) { if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn); else fn(); }
+  whenReady(function () { drawAnnouncement(readSettings()); });
+
   function readCache() { try { return JSON.parse(localStorage.getItem(CACHE)); } catch (e) { return null; } }
 
   var applied = null, cached = readCache();
@@ -120,6 +166,7 @@
       });
       var data = { products: products, settings: settings };
       data.hash = hash(JSON.stringify(data));
+      try { localStorage.setItem(SKEY, JSON.stringify(settings)); } catch (e) {}
       if (data.hash === applied) return;                 // page already shows the latest
       var stored = false;
       try { localStorage.setItem(CACHE, JSON.stringify(data)); stored = true; } catch (e) { /* too big: handled below */ }
