@@ -19,6 +19,7 @@
 <script src="js/config.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/products.js"></script>
+<script src="js/products-ar.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -78,18 +79,25 @@ function showApp(user) {
       <h1><img class="o-logo" src="img/logo.png" alt="">لوحة تحكم Elio</h1>
       <span>${esc(user.email)}</span><a href="index.html" target="_blank" rel="noopener">عرض الموقع</a><button id="out" type="button">خروج</button></div></header>
     <div class="wrap o-wrap">
-      <div class="o-tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="p">المنتجات</button><button role="tab" aria-selected="false" data-tab="s">الإعدادات</button></div>
-      <section id="tabP"></section><section id="tabS" hidden></section></div>
+      <div class="o-tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="p">المنتجات</button>
+        <button role="tab" aria-selected="false" data-tab="h">فحص الموقع</button>
+        <button role="tab" aria-selected="false" data-tab="s">الإعدادات</button>
+        <button role="tab" aria-selected="false" data-tab="b">نسخة احتياطية</button>
+        <button role="tab" aria-selected="false" data-tab="g">دليل الاستخدام</button></div>
+      <section id="tabP"></section><section id="tabH" hidden></section><section id="tabS" hidden></section><section id="tabB" hidden></section><section id="tabG" hidden></section></div>
     <div class="o-dlg" id="dlg" hidden></div>`;
   $("#out").onclick = () => signOut(auth);
-  $$("[data-tab]").forEach(b => b.onclick = () => {
-    $$("[data-tab]").forEach(x => x.setAttribute("aria-selected", x === b));
-    $("#tabP").hidden = b.dataset.tab !== "p"; $("#tabS").hidden = b.dataset.tab !== "s";
-  });
+  $$("[data-tab]").forEach(b => b.onclick = () => goTab(b.dataset.tab));
   unsubP = onSnapshot(collection(db, "products"), snap => { products = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderProducts(); },
     err => { $("#tabP").innerHTML = `<p class="o-note o-note--warn">تعذّرت قراءة المنتجات (${esc(err.code)}). راجع قواعد الأمان في Firebase.</p>`; });
   unsubS = onSnapshot(doc(db, "settings", "site"), s => { settings = s.exists() ? s.data() : {}; renderSettings(); });
-  renderProducts(); renderSettings();
+  renderProducts(); renderSettings(); renderBackup(); renderGuide();
+}
+function goTab(k) {
+  $$("[data-tab]").forEach(x => x.setAttribute("aria-selected", x.dataset.tab === k));
+  ["P", "H", "S", "B", "G"].forEach(t => { const el = $("#tab" + t); if (el) el.hidden = t !== k.toUpperCase(); });
+  window.scrollTo({ top: 0 });
 }
 
 /* ---------- products tab ---------- */
@@ -100,7 +108,10 @@ function renderProducts() {
   const list = products.filter(p => (!filterCat || p.category === filterCat) && (!q || [p.name, p.brandName, p.brand, p.subcategory].join(" ").toLowerCase().includes(q)))
     .sort((a, b) => String(a.name).localeCompare(String(b.name)));
   const seed = (!products.length && typeof PRODUCTS !== "undefined") ? `<div class="o-seed"><p><b>قاعدة البيانات فاضية.</b> تقدر تستورد الكتالوج الحالي (${PRODUCTS.length} منتج) بضغطة واحدة، وبعدها تعدّل أي حاجة من هنا.</p><button class="o-btn" id="seed" type="button">استيراد الكتالوج الحالي</button></div>` : "";
-  box.innerHTML = seed + `<div class="o-tools">
+  const lastB = Number(localStorage.getItem("elio_last_backup") || 0);
+  const stale = products.length && (!lastB || Date.now() - lastB > 30 * 864e5);
+  const reminder = stale ? `<div class="o-note o-note--warn o-remind">${lastB ? "آخر نسخة احتياطية كانت من أكتر من شهر." : "لسه معملتش نسخة احتياطية للمنتجات."} <button type="button" class="o-lnk" data-goto="b">نزّل نسخة دلوقتي</button></div>` : "";
+  box.innerHTML = seed + reminder + `<div class="o-tools">
       <input id="q" type="search" placeholder="ابحث بالاسم أو الماركة…" value="${esc(filterQ)}" aria-label="بحث">
       <select id="fc" aria-label="القسم"><option value="">كل الأقسام</option>${CATS.map(c => `<option value="${c.id}" ${filterCat === c.id ? "selected" : ""}>${esc(c.name_ar)}</option>`).join("")}</select>
       <span class="o-count">${list.length} منتج</span>
@@ -121,6 +132,7 @@ function renderProducts() {
   $("#fc").onchange = e => { filterCat = e.target.value; renderProducts(); };
   $("#add").onclick = () => openForm(null);
   const sb = $("#seed"); if (sb) sb.onclick = seedCatalog;
+  renderHealth();
 }
 
 $("#app").addEventListener("change", async e => {
@@ -244,23 +256,167 @@ function openForm(p) {
   $("#pn").focus();
 }
 
-/* ---------- settings tab ---------- */
+/* ---------- shared helpers ---------- */
+function download(name, mime, text) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: mime }));
+  a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+const today = () => new Date().toISOString().slice(0, 10);
+const LINK_OK = /^(https?:\/\/|\/(?!\/)|[a-z0-9][a-z0-9._-]*\.html)/i;
+
+$("#app").addEventListener("click", e => {
+  const g = e.target.closest("[data-goto]"); if (g) { goTab(g.dataset.goto); return; }
+  const h = e.target.closest("[data-hedit]");
+  if (h) { const p = products.find(x => x.id === h.dataset.hedit); if (p) openForm(p); }
+});
+
+/* ---------- settings tab: announcement bar + quantity discount ---------- */
 function renderSettings() {
   const box = $("#tabS"); if (!box) return;
-  if (box.contains(document.activeElement) && document.activeElement.tagName === "INPUT") return;
-  const cur = settings.discount || SITE_CONFIG.discount || {};
-  box.innerHTML = `<form class="o-set" id="sf"><h2>خصم الكمية</h2>
-    <p class="o-note">لما إجمالي الطلب يوصل للحد الأدنى، الخصم بيتطبّق تلقائيًا في سلة الموقع.</p>
-    <div class="o-f"><label for="sth">الحد الأدنى للطلب (ج.م)</label><input id="sth" type="number" min="0" value="${cur.threshold ?? ""}"></div>
-    <div class="o-f"><label for="spc">نسبة الخصم (%)</label><input id="spc" type="number" min="0" max="100" value="${cur.percent ?? ""}"></div>
-    <button class="o-btn" type="submit">حفظ الإعدادات</button></form>`;
+  if (box.contains(document.activeElement) && /INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  const d = settings.discount || SITE_CONFIG.discount || {};
+  const a = settings.announcement || {};
+  box.innerHTML = `<div class="o-cols">
+    <form class="o-set" id="af"><h2>شريط الإعلان</h2>
+      <p class="o-note">شريط رفيع بيظهر في أعلى كل صفحات الموقع (مثلًا عرض أو إجازة). الزائر يقدر يقفله. لو مطفي، مفيش حاجة بتظهر.</p>
+      <label class="o-sw o-sw--big"><input type="checkbox" id="aen" ${a.enabled ? "checked" : ""}> تشغيل الشريط</label>
+      <div class="o-f"><label for="aet">النص بالإنجليزي</label><input id="aet" type="text" dir="ltr" maxlength="140" value="${esc(a.text || "")}" placeholder="e.g. 10% off all fillers this week"></div>
+      <div class="o-f"><label for="aea">النص بالعربي</label><input id="aea" type="text" maxlength="140" value="${esc(a.text_ar || "")}" placeholder="مثال: خصم 10% على كل الفيلر هذا الأسبوع"></div>
+      <div class="o-f"><label for="ael">رابط (اختياري)</label><input id="ael" type="text" dir="ltr" value="${esc(a.link || "")}" placeholder="products.html أو https://..."><small>لو كتبت رابط، النص كله بيبقى قابل للضغط. اتركه فاضي لو مش محتاج.</small></div>
+      <div class="o-prev" id="aprev" aria-live="polite"></div>
+      <p class="o-err" id="aerr" role="alert"></p>
+      <button class="o-btn" type="submit">حفظ الإعلان</button></form>
+    <form class="o-set" id="sf"><h2>خصم الكمية</h2>
+      <p class="o-note">لما إجمالي الطلب يوصل للحد الأدنى، الخصم بيتطبّق تلقائيًا في سلة الموقع.</p>
+      <div class="o-f"><label for="sth">الحد الأدنى للطلب (ج.م)</label><input id="sth" type="number" min="0" value="${d.threshold ?? ""}"></div>
+      <div class="o-f"><label for="spc">نسبة الخصم (%)</label><input id="spc" type="number" min="0" max="100" value="${d.percent ?? ""}"></div>
+      <button class="o-btn" type="submit">حفظ الخصم</button></form></div>
+    <p class="o-muted">التغييرات بتوصل للزوار خلال 5 دقايق. عشان تشوفها فورًا افتح الموقع وزوّد <b dir="ltr">?fresh=1</b> في آخر العنوان.</p>`;
+  const prev = () => {
+    const t = $("#aea").value.trim() || $("#aet").value.trim();
+    $("#aprev").innerHTML = t ? `<span>معاينة:</span><div class="o-prev__bar">${esc(t)}</div>` : "";
+  };
+  prev(); ["aet", "aea"].forEach(id => $("#" + id).addEventListener("input", prev));
+  $("#af").onsubmit = async e => {
+    e.preventDefault();
+    const en = $("#aen").checked, text = $("#aet").value.trim(), text_ar = $("#aea").value.trim(), link = $("#ael").value.trim(), err = $("#aerr");
+    if (en && !text && !text_ar) { err.textContent = "اكتب نص الإعلان قبل ما تشغّله."; return; }
+    if (link && !LINK_OK.test(link)) { err.textContent = "الرابط لازم يبدأ بـ https:// أو يكون اسم صفحة زي products.html"; return; }
+    err.textContent = "";
+    try { await setDoc(doc(db, "settings", "site"), { announcement: { enabled: en, text, text_ar, link } }, { merge: true }); toast(en ? "الإعلان شغّال" : "تم حفظ الإعلان (مطفي)"); }
+    catch (er) { toast("تعذّر الحفظ: " + (er.code || er.message)); }
+  };
   $("#sf").onsubmit = async e => {
     e.preventDefault();
     const th = Number($("#sth").value), pc = Number($("#spc").value);
     if (!(th >= 0) || !(pc >= 0 && pc <= 100)) { toast("راجع القيم المدخلة"); return; }
-    try { await setDoc(doc(db, "settings", "site"), { discount: { threshold: th, percent: pc } }, { merge: true }); toast("تم حفظ الإعدادات"); }
+    try { await setDoc(doc(db, "settings", "site"), { discount: { threshold: th, percent: pc } }, { merge: true }); toast("تم حفظ الخصم"); }
     catch (er) { toast("تعذّر الحفظ: " + (er.code || er.message)); }
   };
+}
+
+/* ---------- health check tab ---------- */
+function renderHealth() {
+  const box = $("#tabH"); if (!box) return;
+  const hasAr = p => p.description_ar || (typeof PRODUCT_TEXT_AR !== "undefined" && PRODUCT_TEXT_AR.descriptions && PRODUCT_TEXT_AR.descriptions[p.description]);
+  const names = {}; products.forEach(p => { const k = String(p.name || "").trim().toLowerCase(); (names[k] = names[k] || []).push(p); });
+  const dups = [].concat(...Object.values(names).filter(l => l.length > 1));
+  const groups = [
+    { t: "منتجات بدون صورة", lvl: "bad", list: products.filter(p => !p.image) },
+    { t: "منتجات بدون وصف", lvl: "bad", list: products.filter(p => !String(p.description || "").trim()) },
+    { t: "منتجات قسمها غير معروف", lvl: "bad", list: products.filter(p => !CATS.some(c => c.id === p.category)) },
+    { t: "أسماء مكررة", lvl: "warn", list: dups },
+    { t: "منتجات بدون سعر (بتظهر للزائر \"السعر عند الطلب\")", lvl: "info", list: products.filter(p => !(p.price > 0)) },
+    { t: "منتجات بدون وصف بالعربي (الوصف الإنجليزي هو اللي بيظهر)", lvl: "info", list: products.filter(p => String(p.description || "").trim() && !hasAr(p)) },
+    { t: "منتجات مخفية عن الزوار", lvl: "info", list: products.filter(p => p.hidden) }
+  ];
+  const problems = new Set(); groups.filter(g => g.lvl !== "info").forEach(g => g.list.forEach(p => problems.add(p.id)));
+  const visible = products.filter(p => !p.hidden).length;
+  const icon = { bad: "⛔", warn: "⚠️", info: "ℹ️" };
+  box.innerHTML = `<div class="o-stats">
+      <div><b>${products.length}</b><span>إجمالي المنتجات</span></div>
+      <div><b>${visible}</b><span>ظاهرة للزوار</span></div>
+      <div><b>${products.length - visible}</b><span>مخفية</span></div>
+      <div class="${problems.size ? "is-bad" : "is-ok"}"><b>${problems.size}</b><span>منتجات محتاجة مراجعة</span></div></div>
+    ${!products.length ? `<p class="o-note">لسه مفيش منتجات. استورد الكتالوج من تبويب المنتجات الأول.</p>`
+      : problems.size ? "" : `<p class="o-note o-note--ok">✓ كل حاجة تمام: كل المنتجات ليها صورة ووصف وقسم صحيح، ومفيش أسماء مكررة.</p>`}
+    ${groups.filter(g => g.list.length).map(g => `<details class="o-grp o-grp--${g.lvl}" ${g.lvl !== "info" ? "open" : ""}>
+      <summary>${icon[g.lvl]} ${esc(g.t)} <em>${g.list.length}</em></summary>
+      <ul>${g.list.map(p => `<li><span>${esc(p.name)}</span><button type="button" class="o-lnk" data-hedit="${esc(p.id)}">تعديل</button></li>`).join("")}</ul></details>`).join("")}`;
+}
+
+/* ---------- backup tab ---------- */
+function renderBackup() {
+  const box = $("#tabB"); if (!box) return;
+  const last = Number(localStorage.getItem("elio_last_backup") || 0);
+  box.innerHTML = `<div class="o-cols">
+    <div class="o-set"><h2>نزّل نسخة احتياطية</h2>
+      <p class="o-note">${last ? "آخر نسخة نزّلتها على الجهاز ده: <b>" + new Date(last).toLocaleDateString("ar-EG", { day: "numeric", month: "long", year: "numeric" }) + "</b>." : "لسه منزّلتش نسخة على الجهاز ده."}
+      نزّل نسخة قبل أي تعديل كبير، وكمان مرة كل أسبوع تقريبًا. احتفظ بالملف في مكان آمن (Drive أو فلاشة).</p>
+      <button class="o-btn" id="bkJson" type="button">نسخة كاملة (JSON) — فيها الصور والإعدادات</button>
+      <button class="o-btn o-btn--line" id="bkCsv" type="button">جدول المنتجات (يفتح في Excel)</button>
+      <small class="o-muted">ملف الـ JSON هو اللي تستخدمه للاسترجاع. جدول Excel للقراءة والمراجعة فقط ومفيهوش الصور.</small></div>
+    <div class="o-set"><h2>استرجاع من نسخة</h2>
+      <p class="o-note o-note--warn">بيرجّع المنتجات اللي في الملف. أي منتج بنفس الكود هيتكتب عليه النسخة القديمة (يعني أسعار وتعديلات بعد تاريخ النسخة هتتمسح). المنتجات الجديدة اللي مش في الملف بتفضل زي ما هي.</p>
+      <label class="o-sw o-sw--big"><input type="checkbox" id="rsSet" checked> استرجع الإعدادات كمان (الخصم والإعلان)</label>
+      <label class="o-btn o-btn--line o-file">اختار ملف النسخة (JSON)<input type="file" id="rsFile" accept="application/json,.json" hidden></label>
+      <p class="o-err" id="rsErr" role="alert"></p></div></div>`;
+  $("#bkJson").onclick = () => {
+    const out = { app: "elio-backup", version: 1, exportedAt: new Date().toISOString(), count: products.length, settings, products };
+    download(`elio-backup-${today()}.json`, "application/json", JSON.stringify(out));
+    localStorage.setItem("elio_last_backup", String(Date.now())); toast("اتنزّلت النسخة"); renderBackup(); renderProducts();
+  };
+  $("#bkCsv").onclick = () => {
+    const cols = ["id", "name", "brand", "brandName", "category", "subcategory", "price", "featured", "bestseller", "hidden", "description", "description_ar"];
+    const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const rows = [cols.join(",")].concat(products.map(p => cols.map(c => q(p[c])).join(",")));
+    download(`elio-products-${today()}.csv`, "text/csv;charset=utf-8", "\ufeff" + rows.join("\r\n"));
+    toast("اتنزّل جدول المنتجات");
+  };
+  $("#rsFile").onchange = async e => {
+    const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+    const err = $("#rsErr"); err.textContent = "";
+    let data; try { data = JSON.parse(await f.text()); } catch { err.textContent = "الملف ده مش نسخة صالحة."; return; }
+    const ok = data && data.app === "elio-backup" && Array.isArray(data.products) && data.products.length && data.products.every(p => p && typeof p.id === "string" && p.id && typeof p.name === "string");
+    if (!ok) { err.textContent = "الملف ده مش نسخة احتياطية من لوحة Elio."; return; }
+    const when = data.exportedAt ? new Date(data.exportedAt).toLocaleString("ar-EG") : "تاريخ غير معروف";
+    if (!confirm(`هترجّع ${data.products.length} منتج من نسخة بتاريخ ${when}.\nأي تعديلات اتعملت بعد التاريخ ده على نفس المنتجات هتتمسح.\nمتأكد؟`)) return;
+    try {
+      for (let i = 0; i < data.products.length; i += 20) {
+        const b = writeBatch(db);
+        data.products.slice(i, i + 20).forEach(p => b.set(doc(db, "products", p.id), p));
+        await b.commit();
+      }
+      if ($("#rsSet").checked && data.settings && typeof data.settings === "object") await setDoc(doc(db, "settings", "site"), data.settings, { merge: true });
+      toast("تم الاسترجاع");
+    } catch (er) { err.textContent = "تعذّر الاسترجاع: " + (er.code || er.message); }
+  };
+}
+
+/* ---------- guide tab ---------- */
+function renderGuide() {
+  const box = $("#tabG"); if (!box) return;
+  const d = (t, body, open) => `<details class="o-guide" ${open ? "open" : ""}><summary>${t}</summary><div>${body}</div></details>`;
+  box.innerHTML = `<div class="o-guidewrap"><p class="o-note">اضغط على أي عنوان عشان تفتح الشرح.</p>
+    ${d("كيف أغيّر سعر منتج؟", `<ol><li>من تبويب <b>المنتجات</b> دوّر على المنتج (بالاسم أو الماركة).</li><li>اكتب السعر الجديد في خانة <b>السعر</b>.</li><li>اضغط خارج الخانة أو Enter. الخانة هتبقى خضراء ويظهر "تم حفظ السعر".</li></ol><p>سيب الخانة فاضية لو عايز يظهر "السعر عند الطلب".</p>`, true)}
+    ${d("كيف أضيف منتج جديد؟", `<ol><li>اضغط <b>+ إضافة منتج</b>.</li><li>اكتب الاسم زي ما هو على العبوة، واختار الماركة (أو "ماركة جديدة…") والقسم.</li><li>اكتب السعر، والوصف الإنجليزي. الوصف العربي اختياري.</li><li>ارفع الصورة الرئيسية، وحتى 3 صور إضافية.</li><li>اضغط <b>حفظ</b>.</li></ol>
+      <p><b>للصور:</b> الأفضل خلفية بيضاء والمنتج في النص، وصورة مربعة تقريبًا. الصور بتتصغّر تلقائيًا.</p>
+      <p><b>للمحتوى:</b> اكتب معلومات مؤكدة بس (النوع، الحجم، الماركة). متكتبش مكونات أو استخدامات أو نتائج طبية إلا لو متأكد منها من الشركة المصنّعة.</p>`)}
+    ${d("إخفاء منتج / مميز / الأكثر مبيعًا", `<p>من عمود <b>الحالة</b> في جدول المنتجات: <b>مميز</b> بيظهره في الأماكن المميزة، <b>الأكثر مبيعًا</b> بيحط عليه علامة، و<b>مخفي</b> بيشيله من الموقع من غير ما يتحذف.</p><p>لو منتج خلص مؤقتًا، الأفضل تخفيه بدل ما تحذفه، وترجّعه بعدين بضغطة.</p>`)}
+    ${d("كيف أعدّل أو أحذف منتج؟", `<p><b>تعديل:</b> اضغط "تعديل" قدام المنتج. <b>حذف:</b> اضغط "حذف" وأكّد. الحذف نهائي، فلو مش متأكد اخفِ المنتج بدلًا منه.</p>`)}
+    ${d("شريط الإعلان", `<p>من تبويب <b>الإعدادات</b>: اكتب النص بالإنجليزي والعربي، فعّل <b>تشغيل الشريط</b>، واضغط <b>حفظ الإعلان</b>. لإيقافه شيل علامة التشغيل واحفظ.</p>`)}
+    ${d("خصم الكمية", `<p>من تبويب <b>الإعدادات</b>: حدد أقل إجمالي للطلب ونسبة الخصم. الخصم بيتحسب تلقائيًا في السلة.</p>`)}
+    ${d("إمتى التعديل يظهر على الموقع؟", `<p>خلال <b>5 دقايق</b> بالكتير. لو عايز تشوفه فورًا، افتح الموقع وزوّد <b dir="ltr">?fresh=1</b> في آخر العنوان، مثلًا <span dir="ltr">elioderma.com/products.html?fresh=1</span>.</p>`)}
+    ${d("فحص الموقع", `<p>تبويب <b>فحص الموقع</b> بيعرض المنتجات الناقصة (من غير صورة أو وصف)، والأسماء المكررة، والمخفية. اضغط "تعديل" جنب أي منتج عشان تصلحه. لو كله تمام هتلاقي علامة ✓.</p>`)}
+    ${d("النسخ الاحتياطي", `<ul><li>نزّل نسخة <b>JSON</b> قبل أي تعديل كبير وكمان مرة كل أسبوع.</li><li>الملف بيحتوي كل المنتجات بصورها والإعدادات.</li><li>لو حصل غلط، ارجع لتبويب <b>نسخة احتياطية</b> واستخدم <b>استرجاع من نسخة</b>.</li><li>جدول Excel للمراجعة بس، مش للاسترجاع.</li></ul>`)}
+    ${d("نسيت الباسورد أو عايز أغيّره", `<p>من موقع Firebase: <b>Authentication</b> ثم <b>Users</b>، اضغط النقط التلاتة جنب حسابك واختار <b>Reset password</b>.</p>`)}
+    ${d("لو حصلت مشكلة", `<table class="o-tbl"><tr><td>مش قادر أدخل</td><td>تأكد من الإيميل والباسورد. لو كتبتهم غلط كتير استنى شوية وجرّب تاني.</td></tr>
+      <tr><td>مش بيحفظ ("Permission denied")</td><td>الإيميل اللي دخلت بيه مش هو المكتوب في قواعد Firebase. كلّم المسؤول التقني.</td></tr>
+      <tr><td>التعديل مش ظاهر على الموقع</td><td>استنى 5 دقايق أو افتح الموقع بـ <span dir="ltr">?fresh=1</span>، وجرّب Ctrl+F5.</td></tr>
+      <tr><td>مسحت منتج بالغلط</td><td>استخدم <b>استرجاع من نسخة</b> لو عندك نسخة احتياطية.</td></tr></table>`)}
+  </div>`;
 }
 
 onAuthStateChanged(auth, u => { u ? showApp(u) : showLogin(); });
