@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" href="img/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500&family=Fraunces:opsz,wght@9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/owner.css">
 <script>document.documentElement.classList.add("is-ar");</script>
 </head>
@@ -82,21 +82,22 @@ function showApp(user) {
       <div class="o-tabs" role="tablist">
         <button role="tab" aria-selected="true" data-tab="p">المنتجات</button>
         <button role="tab" aria-selected="false" data-tab="h">فحص الموقع</button>
+        <button role="tab" aria-selected="false" data-tab="l">قائمة الأسعار</button>
         <button role="tab" aria-selected="false" data-tab="s">الإعدادات</button>
         <button role="tab" aria-selected="false" data-tab="b">نسخة احتياطية</button>
         <button role="tab" aria-selected="false" data-tab="g">دليل الاستخدام</button></div>
-      <section id="tabP"></section><section id="tabH" hidden></section><section id="tabS" hidden></section><section id="tabB" hidden></section><section id="tabG" hidden></section></div>
+      <section id="tabP"></section><section id="tabH" hidden></section><section id="tabL" hidden></section><section id="tabS" hidden></section><section id="tabB" hidden></section><section id="tabG" hidden></section></div>
     <div class="o-dlg" id="dlg" hidden></div>`;
   $("#out").onclick = () => signOut(auth);
   $$("[data-tab]").forEach(b => b.onclick = () => goTab(b.dataset.tab));
   unsubP = onSnapshot(collection(db, "products"), snap => { products = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderProducts(); },
     err => { $("#tabP").innerHTML = `<p class="o-note o-note--warn">تعذّرت قراءة المنتجات (${esc(err.code)}). راجع قواعد الأمان في Firebase.</p>`; });
   unsubS = onSnapshot(doc(db, "settings", "site"), s => { settings = s.exists() ? s.data() : {}; renderSettings(); });
-  renderProducts(); renderSettings(); renderBackup(); renderGuide();
+  renderProducts(); renderSettings(); renderBackup(); renderGuide(); renderPriceList();
 }
 function goTab(k) {
   $$("[data-tab]").forEach(x => x.setAttribute("aria-selected", x.dataset.tab === k));
-  ["P", "H", "S", "B", "G"].forEach(t => { const el = $("#tab" + t); if (el) el.hidden = t !== k.toUpperCase(); });
+  ["P", "H", "L", "S", "B", "G"].forEach(t => { const el = $("#tab" + t); if (el) el.hidden = t !== k.toUpperCase(); });
   window.scrollTo({ top: 0 });
 }
 
@@ -132,7 +133,7 @@ function renderProducts() {
   $("#fc").onchange = e => { filterCat = e.target.value; renderProducts(); };
   $("#add").onclick = () => openForm(null);
   const sb = $("#seed"); if (sb) sb.onclick = seedCatalog;
-  renderHealth();
+  renderHealth(); renderPriceList();
 }
 
 $("#app").addEventListener("change", async e => {
@@ -347,6 +348,148 @@ function renderHealth() {
       <ul>${g.list.map(p => `<li><span>${esc(p.name)}</span><button type="button" class="o-lnk" data-hedit="${esc(p.id)}">تعديل</button></li>`).join("")}</ul></details>`).join("")}`;
 }
 
+/* ---------- price list tab (printable / save as PDF) ---------- */
+const brandOf = p => p.brandName || (BRANDS.find(b => b.id === p.brand) || {}).name || p.brand || "";
+const priceTxt = (p, ar) => p.price > 0 ? Number(p.price).toLocaleString("en-US") : (ar ? "عند الطلب" : "On request");
+
+function renderPriceList() {
+  const box = $("#tabL"); if (!box) return;
+  if (box.contains(document.activeElement) && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+  const keep = box.querySelector("#plf") ? plOptions() : null;
+  const d = settings.discount || SITE_CONFIG.discount || {};
+  const live = products.filter(p => !p.hidden);
+  box.innerHTML = `<div class="o-cols"><form class="o-set" id="plf" onsubmit="return false">
+      <h2>قائمة الأسعار (PDF)</h2>
+      <p class="o-note">بتطلّع قائمة أنيقة بالأسعار <b>الحالية</b> مقسّمة بالأقسام وفيها بيانات التواصل. كل مرة بتفتحها بتبقى محدّثة بآخر أسعار في اللوحة. المنتجات المخفية مش بتظهر فيها.</p>
+      <fieldset class="o-fs"><legend>لغة القائمة</legend>
+        <label class="o-sw"><input type="radio" name="pll" value="ar" ${!keep || keep.lang === "ar" ? "checked" : ""}> عربي (أسماء المنتجات بتفضل بالإنجليزي)</label>
+        <label class="o-sw"><input type="radio" name="pll" value="en" ${keep && keep.lang === "en" ? "checked" : ""}> English</label></fieldset>
+      <fieldset class="o-fs"><legend>الأقسام اللي تظهر</legend>
+        ${CATS.map(c => { const n = live.filter(p => p.category === c.id).length; const on = !keep || keep.cats.includes(c.id);
+          return `<label class="o-sw"><input type="checkbox" class="plc" value="${c.id}" ${on ? "checked" : ""}> ${esc(c.name_ar)} <small class="o-muted">(${n})</small></label>`; }).join("")}</fieldset>
+      <fieldset class="o-fs"><legend>خيارات</legend>
+        <label class="o-sw"><input type="checkbox" id="plnp" ${!keep || keep.noPrice ? "checked" : ""}> اظهر المنتجات اللي من غير سعر ("عند الطلب")</label>
+        <label class="o-sw"><input type="checkbox" id="plim" ${keep && keep.images ? "checked" : ""}> مع صور مصغّرة (القائمة بتبقى أطول)</label>
+        ${d.threshold > 0 && d.percent > 0 ? `<label class="o-sw"><input type="checkbox" id="pldc" ${!keep || keep.discount ? "checked" : ""}> اذكر خصم الكمية (${d.percent}% فوق ${Number(d.threshold).toLocaleString("en-US")} ج.م)</label>` : ""}</fieldset>
+      <div class="o-f"><label for="plnt">ملاحظة أسفل القائمة (اختياري)</label><textarea id="plnt" rows="2" maxlength="200" placeholder="مثال: الأسعار قابلة للتغيير بدون إشعار">${esc(keep ? keep.note : "")}</textarea></div>
+      <p class="o-err" id="plerr" role="alert"></p>
+      <button class="o-btn" type="button" id="plopen">فتح القائمة (طباعة / حفظ PDF)</button>
+      <button class="o-btn o-btn--line" type="button" id="plcopy">نسخ كنص للواتساب</button></form>
+    <div class="o-set"><h2>إزاي أحفظها PDF؟</h2>
+      <ol class="o-steps"><li>اضغط <b>فتح القائمة</b>. هتظهر معاينة للقائمة وشاشة الطباعة تلقائيًا.</li>
+        <li>في خانة <b>الطابعة (Destination)</b> اختار <b>Save as PDF</b> أو <b>حفظ بتنسيق PDF</b>.</li>
+        <li>اضغط <b>Save</b> وسمّي الملف، مثلًا <span dir="ltr">Elio-Price-List.pdf</span>.</li>
+        <li>ابعت الملف على واتساب أو الإيميل.</li></ol>
+      <p class="o-muted">لو الشاشة ما ظهرتش، اضغط زرار "طباعة / حفظ PDF" في أعلى المعاينة. وللرجوع للوحة اضغط "إغلاق" أو Esc.</p>
+      <p class="o-muted">لو غيّرت سعر بعد ما حفظت الملف، اعمل قائمة جديدة. الملف المحفوظ مش بيتحدّث لوحده.</p></div></div>`;
+  $("#plopen").onclick = () => openPriceList();
+  $("#plcopy").onclick = () => copyPriceList();
+}
+
+function plOptions() {
+  return { lang: ($('input[name="pll"]:checked') || {}).value || "ar", cats: $$(".plc:checked").map(i => i.value),
+    noPrice: !!($("#plnp") && $("#plnp").checked), images: !!($("#plim") && $("#plim").checked), discount: !!($("#pldc") && $("#pldc").checked), note: ($("#plnt") ? $("#plnt").value.trim() : "") };
+}
+function plGroups(o) {
+  return CATS.filter(c => o.cats.includes(c.id)).map(c => ({
+    c, items: products.filter(p => !p.hidden && p.category === c.id && (o.noPrice || p.price > 0))
+      .sort((a, b) => brandOf(a).localeCompare(brandOf(b)) || String(a.name).localeCompare(String(b.name)))
+  })).filter(g => g.items.length);
+}
+function plDate(ar) { return new Date().toLocaleDateString(ar ? "ar-EG" : "en-GB", { day: "numeric", month: "long", year: "numeric" }); }
+
+function copyPriceList() {
+  const o = plOptions(), ar = o.lang === "ar", g = plGroups(o), err = $("#plerr");
+  if (!g.length) { err.textContent = "اختار قسم واحد على الأقل فيه منتجات."; return; }
+  err.textContent = "";
+  const cur = ar ? "ج.م" : "EGP";
+  const lines = [`*Elio — ${ar ? "قائمة الأسعار" : "Price List"}*`, plDate(ar), ""];
+  g.forEach(x => {
+    lines.push(`*${ar ? x.c.name_ar : x.c.name}*`);
+    x.items.forEach(p => lines.push(`• ${p.name} — ${p.price > 0 ? Number(p.price).toLocaleString("en-US") + " " + cur : priceTxt(p, ar)}`));
+    lines.push("");
+  });
+  const c = SITE_CONFIG.contact;
+  if (o.note) lines.push(o.note, "");
+  lines.push(`${ar ? "للطلب والاستفسار" : "Orders & enquiries"}: ${c.phone}`, "www.elioderma.com");
+  (navigator.clipboard ? navigator.clipboard.writeText(lines.join("\n")) : Promise.reject()).then(() => toast("اتنسخت القائمة. الصقها في واتساب")).catch(() => { err.textContent = "المتصفح منع النسخ. جرّب تاني."; });
+}
+
+function closePriceList() {
+  const v = $("#plv"); if (v) v.remove();
+  const st = $("#plstyle"); if (st) st.remove();
+  document.body.classList.remove("pl-open");
+  if (closePriceList.title) document.title = closePriceList.title;
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape") closePriceList(); });
+
+function openPriceList() {
+  const o = plOptions(), ar = o.lang === "ar", g = plGroups(o), err = $("#plerr");
+  if (!g.length) { err.textContent = "اختار قسم واحد على الأقل فيه منتجات."; return; }
+  err.textContent = "";
+  closePriceList();
+  const c = SITE_CONFIG.contact, dsc = settings.discount || SITE_CONFIG.discount || {};
+  const total = g.reduce((n, x) => n + x.items.length, 0);
+  const L = ar
+    ? { title: "قائمة الأسعار", prod: "المنتج", brand: "الماركة", price: "السعر (ج.م)", items: "منتج", upd: "آخر تحديث", print: "طباعة / حفظ PDF", close: "إغلاق", hint: "في شاشة الطباعة اختار Save as PDF", contact: "للطلب والاستفسار", disc: `خصم ${dsc.percent}% على الطلبات اللي إجماليها ${Number(dsc.threshold).toLocaleString("en-US")} ج.م أو أكتر.` }
+    : { title: "Price List", prod: "Product", brand: "Brand", price: "Price (EGP)", items: "products", upd: "Updated", print: "Print / Save as PDF", close: "Close", hint: "In the print dialog choose Save as PDF", contact: "Orders & enquiries", disc: `${dsc.percent}% discount on orders totaling EGP ${Number(dsc.threshold).toLocaleString("en-US")} or more.` };
+  const showDisc = o.discount && dsc.threshold > 0 && dsc.percent > 0;
+  const rows = x => x.items.map(p => `<tr>${o.images ? `<td class="im">${p.image ? `<img src="${esc(p.image)}" alt="">` : ""}</td>` : ""}<td class="nm">${esc(p.name)}</td><td class="br">${esc(brandOf(p))}</td><td class="pr${p.price > 0 ? "" : " ask"}">${esc(priceTxt(p, ar))}</td></tr>`).join("");
+  const font = ar ? "'IBM Plex Sans Arabic'" : "'Plus Jakarta Sans'", hfont = ar ? "'IBM Plex Sans Arabic'" : "Fraunces";
+  const side = ar ? "left" : "right";
+  /* all rules are scoped to #plv so nothing leaks into the dashboard */
+  const css = `
+@page { size: A4; margin: 14mm 12mm 16mm; }
+#plv{position:fixed;inset:0;z-index:300;background:#fff;overflow:auto;color:#3A2A4D;font:400 10.5pt/1.5 ${font},'Segoe UI',Tahoma,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#plv *{box-sizing:border-box}
+#plv .bar{position:sticky;top:0;z-index:5;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;padding:10px;background:#3A2A4D;color:#fff;font-size:10pt}
+#plv .bar button{font:inherit;padding:7px 18px;border:0;border-radius:4px;background:#fff;color:#3A2A4D;cursor:pointer;font-weight:600}
+#plv .bar button.x{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5)}
+#plv .pg{max-width:210mm;margin:0 auto;padding:0 12mm 40px}
+#plv .hd{display:flex;align-items:center;gap:14px;padding:18px 0 12px;border-bottom:2px solid #3A2A4D;margin-bottom:6px}
+#plv .hd img{width:54px;height:54px;object-fit:contain}
+#plv .hd h1{margin:0;font:${ar ? 600 : 500} 20pt/1.1 ${hfont},Georgia,serif}
+#plv .hd p{margin:2px 0 0;color:#6b5a80;font-size:9.5pt}
+#plv .hd .ct{color:#3A2A4D}
+#plv .meta{margin-inline-start:auto;text-align:${side};font-size:9.5pt;color:#6b5a80}
+#plv .cat{margin-top:16px}
+#plv .cat h2{break-after:avoid-page;margin:0;padding:7px 12px;background:#3A2A4D;color:#fff;font:600 11.5pt/1.3 ${font},sans-serif;border-radius:3px}
+#plv .cat h2 small{font-weight:400;opacity:.75;margin-inline-start:8px;font-size:9pt}
+#plv table{width:100%;border-collapse:collapse}
+#plv thead{display:table-header-group}
+#plv th{padding:6px 10px;font-size:8.5pt;font-weight:600;color:#6b5a80;text-align:start;border-bottom:1px solid #d9cde6}
+#plv td{padding:5px 10px;border-bottom:1px solid #eee7f3;vertical-align:middle}
+#plv tr{break-inside:avoid}
+#plv tbody tr:nth-child(even) td{background:#faf6fc}
+#plv td.nm{font-weight:500;unicode-bidi:plaintext;text-align:start}
+#plv td.br{color:#6b5a80;font-size:9.5pt;unicode-bidi:plaintext}
+#plv td.pr,#plv th:last-child{text-align:${side};white-space:nowrap}
+#plv td.pr{font-weight:600;font-variant-numeric:tabular-nums;color:#9C2A5E}
+#plv td.pr.ask{font-weight:400;color:#6b5a80;font-size:9.5pt}
+#plv td.im{width:40px;padding:3px 6px} #plv td.im img{width:34px;height:34px;object-fit:contain;display:block}
+#plv .note{margin-top:16px;padding:9px 12px;border:1px solid #d9cde6;border-radius:3px;font-size:9.5pt;background:#faf6fc}
+#plv .ft{margin-top:22px;display:flex;justify-content:space-between;gap:10px;padding-top:8px;border-top:1px solid #d9cde6;font-size:9pt;color:#6b5a80;break-inside:avoid}
+#plv .ft b{color:#3A2A4D}
+@media print{ body.pl-open > *:not(#plv){display:none!important} #plv{position:static!important;overflow:visible!important;inset:auto!important} #plv .bar{display:none!important} #plv .pg{max-width:none;padding:0} #plv .hd{padding-top:0} }`;
+  const html = `<div class="bar"><button type="button" id="plgo">${L.print}</button><button type="button" class="x" id="plx">${L.close}</button><span>${L.hint}</span></div>
+<div class="pg"><div class="hd"><img src="img/logo.png" alt=""><div><h1>Elio — ${L.title}</h1><p>${esc(ar ? SITE_CONFIG.brand.tagline_ar : SITE_CONFIG.brand.tagline)}</p>
+<p class="ct">${L.contact}: <span dir="ltr">${esc(c.phone)}</span> &nbsp;·&nbsp; <span dir="ltr">${esc(c.email)}</span> &nbsp;·&nbsp; <span dir="ltr">www.elioderma.com</span></p></div>
+<div class="meta">${L.upd}: ${esc(plDate(ar))}<br>${total} ${L.items}</div></div>
+${g.map(x => `<section class="cat"><h2>${esc(ar ? x.c.name_ar : x.c.name)}<small>${esc(ar ? x.c.name : x.c.name_ar)}</small></h2>
+<table><thead><tr>${o.images ? "<th></th>" : ""}<th>${L.prod}</th><th>${L.brand}</th><th>${L.price}</th></tr></thead><tbody>${rows(x)}</tbody></table></section>`).join("")}
+${showDisc ? `<div class="note">${esc(L.disc)}</div>` : ""}${o.note ? `<div class="note">${esc(o.note)}</div>` : ""}
+<div class="ft"><span><b>${L.contact}:</b> <span dir="ltr">${esc(c.phone)}</span> &nbsp;·&nbsp; <span dir="ltr">${esc(c.email)}</span></span><span dir="ltr">www.elioderma.com</span></div></div>`;
+  const st = document.createElement("style"); st.id = "plstyle"; st.textContent = css; document.head.appendChild(st);
+  const v = document.createElement("div"); v.id = "plv"; v.dir = ar ? "rtl" : "ltr"; v.lang = ar ? "ar" : "en"; v.innerHTML = html;
+  document.body.appendChild(v); document.body.classList.add("pl-open");
+  closePriceList.title = document.title; document.title = "Elio-Price-List-" + today();
+  $("#plx").onclick = closePriceList;
+  $("#plgo").onclick = () => window.print();
+  /* open the print dialog automatically once the pictures are in (never waits more than 3.5 s) */
+  const imgs = $$("img", v).map(i => i.complete ? 1 : new Promise(r => { i.onload = i.onerror = r; }));
+  Promise.race([Promise.all(imgs), new Promise(r => setTimeout(r, 3500))]).then(() => setTimeout(() => { if ($("#plv")) window.print(); }, 350));
+}
+
 /* ---------- backup tab ---------- */
 function renderBackup() {
   const box = $("#tabB"); if (!box) return;
@@ -410,6 +553,7 @@ function renderGuide() {
     ${d("خصم الكمية", `<p>من تبويب <b>الإعدادات</b>: حدد أقل إجمالي للطلب ونسبة الخصم. الخصم بيتحسب تلقائيًا في السلة.</p>`)}
     ${d("إمتى التعديل يظهر على الموقع؟", `<p>خلال <b>5 دقايق</b> بالكتير. لو عايز تشوفه فورًا، افتح الموقع وزوّد <b dir="ltr">?fresh=1</b> في آخر العنوان، مثلًا <span dir="ltr">elioderma.com/products.html?fresh=1</span>.</p>`)}
     ${d("فحص الموقع", `<p>تبويب <b>فحص الموقع</b> بيعرض المنتجات الناقصة (من غير صورة أو وصف)، والأسماء المكررة، والمخفية. اضغط "تعديل" جنب أي منتج عشان تصلحه. لو كله تمام هتلاقي علامة ✓.</p>`)}
+    ${d("قائمة الأسعار PDF", `<ol><li>من تبويب <b>قائمة الأسعار</b> اختار اللغة والأقسام اللي عايزها.</li><li>اضغط <b>فتح القائمة</b> (بتظهر معاينة جوه اللوحة) واختار <b>Save as PDF</b> من شاشة الطباعة.</li><li>ابعت الملف للعملاء. القائمة بتتعمل من الأسعار الحالية في اللحظة دي، فلو غيّرت سعر اعمل قائمة جديدة.</li></ol><p>زرار <b>نسخ كنص للواتساب</b> بيطلّع نفس القائمة كرسالة تلزق مباشرة.</p>`)}
     ${d("النسخ الاحتياطي", `<ul><li>نزّل نسخة <b>JSON</b> قبل أي تعديل كبير وكمان مرة كل أسبوع.</li><li>الملف بيحتوي كل المنتجات بصورها والإعدادات.</li><li>لو حصل غلط، ارجع لتبويب <b>نسخة احتياطية</b> واستخدم <b>استرجاع من نسخة</b>.</li><li>جدول Excel للمراجعة بس، مش للاسترجاع.</li></ul>`)}
     ${d("نسيت الباسورد أو عايز أغيّره", `<p>من موقع Firebase: <b>Authentication</b> ثم <b>Users</b>، اضغط النقط التلاتة جنب حسابك واختار <b>Reset password</b>.</p>`)}
     ${d("لو حصلت مشكلة", `<table class="o-tbl"><tr><td>مش قادر أدخل</td><td>تأكد من الإيميل والباسورد. لو كتبتهم غلط كتير استنى شوية وجرّب تاني.</td></tr>
