@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>طلبات Elio</title>
+<link rel="icon" type="image/png" href="img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/owner.css">
+<style>
+/* status colours: --c = accent, --bg = soft background */
+.s0 { --c:#b7791f; --bg:#fdf0d5; }
+.s1 { --c:#1d6fa5; --bg:#e1f0fa; }
+.s2 { --c:#6b4fa0; --bg:#ece6f7; }
+.s3 { --c:#0b7f99; --bg:#dff3f7; }
+.s4 { --c:#c2570c; --bg:#fde8d7; }
+.s5 { --c:#1b8a4b; --bg:#e6f4ea; }
+.sx { --c:#8a9a9f; --bg:#eef1f1; }
+
+.ord-stats { display:flex; gap:10px; flex-wrap:wrap; margin-block-end:18px; }
+.chip { display:flex; flex-direction:column; gap:2px; min-width:112px; padding:12px 16px; background:#fff; border:1px solid var(--line); border-inline-start:4px solid var(--c, var(--ink)); border-radius:4px; text-align:start; font:inherit; }
+button.chip { cursor:pointer; }
+.chip b { font-size:1.5rem; line-height:1.1; font-variant-numeric:tabular-nums; }
+.chip span { font-size:.82rem; color:var(--muted); }
+.chip[aria-pressed="true"] { outline:2px solid var(--ink); background:var(--bg, #fff); }
+.chip--sum { --c:var(--ink); }
+
+.ord-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:16px; }
+.oc { background:#fff; border:1px solid var(--line); border-block-start:4px solid var(--c, var(--line)); border-radius:4px; padding:16px; display:flex; flex-direction:column; gap:12px; }
+.oc__h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+.oc__n { font-weight:600; }
+.oc__d { color:var(--muted); font-size:.84rem; margin-inline-end:auto; direction:ltr; }
+.oc__t { font-variant-numeric:tabular-nums; }
+.oc__c strong { display:block; font-weight:600; }
+.oc__links { display:flex; gap:14px; flex-wrap:wrap; font-size:.92rem; margin-block-start:2px; }
+.oc__links a { color:var(--ink); text-decoration:underline; text-underline-offset:3px; }
+.oc__i { white-space:pre-line; font-size:.9rem; background:var(--tint); padding:10px 12px; border-radius:2px; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+.oc__f { display:flex; gap:10px; align-items:center; margin-block-start:auto; }
+.st { flex:1; min-width:0; min-height:44px; padding:0 10px; border:1px solid var(--c, var(--line)); background:var(--bg, #fff); color:var(--text); font-weight:600; border-radius:2px; }
+.st:disabled { opacity:.6; cursor:wait; }
+.ord-empty { grid-column:1 / -1; text-align:center; padding:48px 16px; color:var(--muted); background:#fff; border:1px dashed var(--line); border-radius:4px; }
+
+.od { width:min(640px, 100%); max-height:calc(100svh - 32px); overflow:auto; background:#fff; border-radius:4px; border-block-start:5px solid var(--c, var(--ink)); padding:24px; display:flex; flex-direction:column; gap:16px; }
+.od h2 { font-size:1.3rem; }
+.od dl { display:grid; grid-template-columns:120px 1fr; gap:8px 14px; margin:0; }
+.od dt { color:var(--muted); font-size:.88rem; }
+.od dd { margin:0; word-break:break-word; white-space:pre-line; }
+.od dd a { color:var(--ink); text-decoration:underline; text-underline-offset:3px; }
+.od__row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.od .st { flex:none; width:100%; }
+.o-bar button:disabled { opacity:.5; }
+@media (max-width:640px) { .od { padding:18px; } .od__row2 { grid-template-columns:1fr; } .od dl { grid-template-columns:100px 1fr; } .ord-grid { grid-template-columns:1fr; } }
+/* ---- v2: horizontal rows on desktop, cards on mobile ---- */
+:root{--cols:112px 180px minmax(220px,1fr) 104px 240px}
+.ord-sum{display:flex;gap:10px;flex-wrap:wrap;margin-block-end:10px}
+.chip--top{display:block;min-width:260px;flex:1}.chip--top summary{cursor:pointer;list-style:none}.chip--top summary::-webkit-details-marker{display:none}
+.chip--top b{display:block;font-size:1.05rem;line-height:1.3}.chip--top div{font-size:.85rem;margin-block-start:5px}
+.seg{display:inline-flex;border:1px solid var(--line);background:#fff;border-radius:2px;overflow:hidden}
+.seg button{min-height:44px;padding:0 13px;border:0;border-inline-start:1px solid var(--line);background:none;font:inherit;cursor:pointer}
+.seg button:first-child{border-inline-start:0}.seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.ord-head{display:none}
+.ord-grid{display:flex;flex-direction:column;gap:12px}
+.oc{display:grid;grid-template-columns:1fr auto;grid-template-areas:"a t" "c c" "p p" "f f";align-items:start}
+.oc__a{grid-area:a;display:flex;flex-direction:column;gap:2px}.oc__c{grid-area:c}.oc__p{grid-area:p}.oc__f{grid-area:f;flex-wrap:wrap}
+.oc__t{grid-area:t;font-weight:600;text-align:end;font-variant-numeric:tabular-nums}.oc__t small{display:block;color:var(--muted);font-weight:400;font-size:.8rem}
+.oc__p{list-style:none;margin:0;display:flex;flex-direction:column;gap:6px;font-size:.92rem;background:var(--tint);padding:10px 12px;border-radius:2px}
+.oc__p li{display:grid;grid-template-columns:1fr auto 64px;gap:10px;align-items:baseline}.oc__p small{color:var(--muted)}.p-q{font-weight:600}.p-pr{text-align:end;color:var(--muted);font-variant-numeric:tabular-nums}
+.sm{min-height:40px;padding:0 12px;font-size:.88rem;flex:1 1 auto;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.oc .st{flex:1 1 100%}
+.od textarea{width:100%;padding:10px;border:1px solid var(--line);font:inherit;border-radius:2px}.od__acts{display:flex;gap:8px;flex-wrap:wrap}
+@media (min-width:960px){
+.ord-head{display:grid;grid-template-columns:var(--cols);gap:16px;padding:0 20px 0 16px;color:var(--muted);font-size:.82rem;margin-block-end:-4px}
+.oc{grid-template-columns:var(--cols);grid-template-areas:"a c p t f";gap:16px;border-block-start:1px solid var(--line);border-inline-start:4px solid var(--c,var(--line))}
+.oc__t{text-align:start}}
+.danger{color:#b3261e;border-color:#b3261e}.o-btn.danger--solid{background:#b3261e;border-color:#b3261e;color:#fff}
+.od__confirm{border:1px solid #b3261e;background:#fdecea;padding:12px 14px;border-radius:2px}.od__confirm p{margin:0 0 10px}
+</style>
+</head>
+<body class="owner">
+<div id="app"></div>
+<div class="o-toast" id="toast" hidden></div>
+
+<script src="js/config.js"></script>
+<script>
+(function () {
+"use strict";
+
+const $ = (s, r) => (r || document).querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = n => Number(n || 0).toLocaleString("en-US");
+const digits = s => String(s || "").replace(/\D/g, "");
+const app = $("#app");
+const toast = m => { const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, 3000); };
+
+const ENDPOINT = (typeof SITE_CONFIG !== "undefined" && SITE_CONFIG.orderSync && SITE_CONFIG.orderSync.webhookUrl) || "";
+const PW_KEY = "Elio_orders_pw";
+const store = {
+  get() { try { return sessionStorage.getItem(PW_KEY) || ""; } catch (e) { return ""; } },
+  set(v) { try { if (v) sessionStorage.setItem(PW_KEY, v); else sessionStorage.removeItem(PW_KEY); } catch (e) { /* storage blocked */ } }
+};
+
+let pw = "";
+let orders = [];
+let statuses = ["طلب جديد", "جاري التجهيز", "جاهز للشحن", "تم الشحن", "في الطريق", "تم التسليم"];
+let fQ = "", fStatus = "";
+let seen = null, timer = null, versionOk = false, lastLoad = 0, lastFocus = null;
+
+/* ---------- not configured ---------- */
+if (!ENDPOINT || ENDPOINT.includes("PASTE_YOUR")) {
+  app.innerHTML = `<div class="o-login"><div class="o-login__card"><img src="img/logo.png" alt=""><h1>الصفحة غير متوصلة بالشيت</h1>
+    <p class="o-note o-note--warn">لازم تحط رابط Google Apps Script في <b dir="ltr">orderSync.webhookUrl</b> جوه <b dir="ltr">js/config.js</b>. الخطوات في <b dir="ltr">GOOGLE_SHEETS_SETUP.md</b>.</p></div></div>`;
+  return;
+}
+
+/* ---------- talking to Apps Script ---------- */
+async function call(url, opts) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 30000);
+  try { return await fetch(url, Object.assign({ signal: ctl.signal }, opts)); }
+  finally { clearTimeout(t); }
+}
+
+// An old version of Code.gs would treat our request as a NEW ORDER and write a
+// blank row. So we first make sure the new version is deployed.
+async function checkVersion() {
+  if (versionOk) return;
+  let j = null;
+  try { const r = await call(ENDPOINT, { method: "GET", cache: "no-store" }); j = await r.json(); } catch (e) { /* handled below */ }
+  if (!j || j.app !== "elio-orders" || !(j.version >= 2)) {
+    throw { code: "version", message: "تعذّر الاتصال بالسكريبت. لو لسه ما عملتش Deploy لنسخة جديدة من Code.gs اعمل كده الأول (Deploy ← Manage deployments ← Edit ← New version)، أو اتأكد من النت." };
+  }
+  if (j.hasPassword === false) {
+    throw { code: "setup", message: "السكريبت شغال بس مفيهوش كلمة مرور. افتح Code.gs جوه Apps Script واكتب الباسورد في السطر ADMIN_PASSWORD_LOCAL، وبعدين Deploy ← Manage deployments ← Edit ← New version." };
+  }
+  versionOk = true;
+}
+
+async function api(body) {
+  await checkVersion();
+  let j;
+  try {
+    const r = await call(ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(Object.assign({ pw: pw }, body))
+    });
+    j = await r.json();
+  } catch (e) { throw { code: "net", message: "تعذّر الاتصال. اتأكد من النت وجرّب تاني." }; }
+  if (!j || j.status !== "ok") throw { code: (j && j.code) || "error", message: (j && j.message) || "حصل خطأ غير متوقع." };
+  return j;
+}
+
+async function load() {
+  const j = await api({ action: "list" });
+  if (j.statuses && j.statuses.length) statuses = j.statuses;
+  const incoming = j.orders || [];
+  if (seen) {
+    const fresh = incoming.filter(o => !seen.has(o.key)).length;
+    if (fresh) {
+      toast(fresh === 1 ? "وصل طلب جديد" : "وصل " + fresh + " طلبات جديدة");
+      chime();
+      if (document.hidden) { newCount += fresh; document.title = "(" + newCount + ") طلبات Elio"; }
+    }
+  }
+  seen = new Set(incoming.map(o => o.key));
+  orders = incoming.map(prep).sort((a, b) => b.n - a.n);
+  lastLoad = Date.now();
+}
+
+function handleErr(e) {
+  const msg = (e && e.message) || "حصل خطأ غير متوقع.";
+  if (e && e.code === "auth") { pw = ""; store.set(""); showLogin("كلمة المرور غير صحيحة."); return; }
+  if (e && e.code === "stale") { toast(msg); load().then(refreshView).catch(() => {}); return; }
+  toast(msg);
+}
+
+/* ---------- login ---------- */
+function showLogin(msg, warn) {
+  clearInterval(timer);
+  seen = null;
+  app.innerHTML = `<div class="o-login"><form class="o-login__card" id="lf" novalidate>
+    <img src="img/logo.png" alt=""><h1>طلبات Elio</h1>
+    <div class="o-f"><label for="pw">كلمة المرور</label><input id="pw" type="password" autocomplete="current-password" dir="ltr"></div>
+    ${warn ? `<p class="o-note o-note--warn">${esc(warn)}</p>` : ""}
+    <p class="o-err" id="err" role="alert">${esc(msg || "")}</p>
+    <button class="o-btn" type="submit" id="go">دخول</button></form></div>`;
+  $("#pw").focus();
+  $("#lf").addEventListener("submit", async ev => {
+    ev.preventDefault();
+    const v = $("#pw").value;
+    if (!v) { $("#err").textContent = "اكتب كلمة المرور."; return; }
+    $("#go").disabled = true; $("#go").textContent = "جاري الدخول..."; $("#err").textContent = "";
+    pw = v;
+    try { await load(); store.set(pw); showApp(); }
+    catch (e) {
+      pw = "";
+      $("#err").textContent = e.code === "auth" ? "كلمة المرور غير صحيحة." : e.message;
+      $("#go").disabled = false; $("#go").textContent = "دخول";
+    }
+  });
+}
+
+/* ---------- main screen ---------- */
+function showApp() {
+  app.innerHTML = `<header class="o-bar"><div class="wrap o-bar__in">
+      <h1><img class="o-logo" src="img/logo.png" alt="">طلبات Elio</h1>
+      <span id="stamp"></span><button id="snd" type="button"></button><button id="rf" type="button">تحديث</button>
+      <a href="index.html" target="_blank" rel="noopener">عرض الموقع</a><button id="out" type="button">خروج</button></div></header>
+    <div class="wrap o-wrap">
+      <div class="ord-sum" id="sum"></div><div class="ord-stats" id="stats"></div>
+      <div class="o-tools"><input type="search" id="q" placeholder="ابحث بالاسم أو التليفون أو المنتج أو رقم الطلب" aria-label="بحث">
+        <select id="fs" aria-label="فلتر الحالة"></select><div class="seg" id="seg">${[["all","الكل"],["today","النهارده"],["week","آخر 7 أيام"],["month","الشهر"]].map(([k, l]) => `<button type="button" data-d="${k}" aria-pressed="${fDate === k}">${l}</button>`).join("")}</div><button class="o-btn o-btn--line" id="ex" type="button">تصدير Excel</button><span class="o-count" id="cnt"></span></div>
+      <div class="ord-head"><span>الطلب</span><span>العميل</span><span>المنتجات</span><span>الإجمالي</span><span>الحالة والإجراءات</span></div><div class="ord-grid" id="list"></div></div>
+    <div class="o-dlg" id="dlg" hidden></div>`;
+  $("#fs").innerHTML = `<option value="">كل الحالات</option>` + statuses.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
+  $("#fs").value = fStatus;
+  $("#q").value = fQ;
+
+  const sndLabel = () => { $("#snd").textContent = "الصوت: " + (snd ? "شغال" : "مقفول"); };
+  sndLabel();
+  $("#snd").onclick = () => { snd = !snd; try { localStorage.setItem("Elio_orders_snd", snd ? "1" : "0"); } catch (e) { /* ignore */ } sndLabel(); unlock(); if (snd) chime(); };
+  $("#ex").onclick = exportCsv;
+  $("#seg").addEventListener("click", e => {
+    const b = e.target.closest("[data-d]"); if (!b) return;
+    fDate = b.dataset.d; $("#seg").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); refreshView();
+  });
+  $("#out").onclick = () => { store.set(""); pw = ""; orders = []; showLogin(); };
+  $("#rf").onclick = async () => {
+    const b = $("#rf"); b.disabled = true;
+    try { await load(); refreshView(); toast("تم التحديث"); } catch (e) { handleErr(e); }
+    b.disabled = false;
+  };
+  $("#q").addEventListener("input", e => { fQ = e.target.value; renderList(); });
+  $("#fs").addEventListener("change", e => { fStatus = e.target.value; renderStats(); renderList(); });
+  $("#stats").addEventListener("click", e => {
+    const b = e.target.closest("[data-f]"); if (!b) return;
+    fStatus = fStatus === b.dataset.f ? "" : b.dataset.f;
+    $("#fs").value = fStatus; renderStats(); renderList();
+  });
+  $("#list").addEventListener("change", e => {
+    const s = e.target.closest("select[data-st]");
+    if (s) changeStatus(Number(s.dataset.st), s.value, s);
+  });
+  $("#list").addEventListener("click", e => {
+    const p = e.target.closest("[data-pr]");
+    if (p) { const po = orders.find(x => x.row === Number(p.dataset.pr)); if (po) printDoc(po, "inv"); return; }
+    const b = e.target.closest("[data-open]");
+    if (b) { lastFocus = b; openDlg(Number(b.dataset.open)); }
+  });
+  $("#dlg").addEventListener("click", e => { if (e.target === $("#dlg")) closeDlg(); });
+
+  refreshView();
+  clearInterval(timer);
+  timer = setInterval(tick, 45000);
+}
+
+function tick() {
+  load().then(refreshView).catch(e => { if (e && e.code === "auth") handleErr(e); });
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) return;
+  newCount = 0; document.title = "طلبات Elio";
+  if (pw && $("#list") && Date.now() - lastLoad > 30000) tick();
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape" && $("#dlg") && !$("#dlg").hidden) closeDlg(); });
+
+function refreshView() {
+  if (!$("#list")) return;
+  renderSum(); renderStats(); renderList();
+  const d = new Date(lastLoad);
+  $("#stamp").textContent = "آخر تحديث " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+}
+
+const cls = status => { const i = statuses.indexOf(status); return i >= 0 ? "s" + (i % 6) : "sx"; };
+
+function renderStats() {
+  const counts = {}, base = orders.filter(inRange);
+  base.forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1; });
+  $("#stats").innerHTML =
+    statuses.map((s, i) => `<button type="button" class="chip s${i % 6}" data-f="${esc(s)}" aria-pressed="${fStatus === s}"><b>${counts[s] || 0}</b><span>${esc(s)}</span></button>`).join("") +
+    `<div class="chip chip--sum"><b>${fmt(base.reduce((a, o) => a + o.total, 0))}</b><span>إجمالي المبيعات (${base.length} طلب)</span></div>`;
+}
+
+function waNum(p) {
+  let d = digits(p);
+  if (!d) return "";
+  if (d.startsWith("00")) d = d.slice(2);
+  else if (d.startsWith("0")) d = "20" + d.slice(1);
+  else if (/^1\d{9}$/.test(d)) d = "20" + d;
+  return d;
+}
+
+function statusSelect(o, attrs) {
+  const list = statuses.slice();
+  let blank = "";
+  if (!o.status) blank = `<option value="" selected disabled>بدون حالة</option>`;
+  else if (list.indexOf(o.status) < 0) list.push(o.status);
+  return `<select class="st" ${attrs} aria-label="حالة الطلب">${blank}` +
+    list.map(s => `<option value="${esc(s)}"${s === o.status ? " selected" : ""}>${esc(s)}</option>`).join("") + `</select>`;
+}
+
+function contactLinks(o) {
+  const wa = waNum(o.phone);
+  return (o.phone ? `<a href="tel:${digits(o.phone)}" dir="ltr">${esc(o.phone)}</a>` : "") +
+    (wa ? `<a href="https://wa.me/${wa}?text=${encodeURIComponent("أهلاً " + o.name + "، بخصوص طلبك رقم " + o.n + " من Elio")}" target="_blank" rel="noopener">واتساب</a>` : "");
+}
+
+function card(o) {
+  const wl = waLink(o);
+  return `<article class="oc ${cls(o.status)}">
+    <div class="oc__a"><span class="oc__n">#${o.n}</span><span class="oc__d">${esc(o.date)}</span></div>
+    <div class="oc__c"><strong>${esc(o.name) || "—"}</strong><div class="oc__links">${contactLinks(o)}</div></div>
+    ${itemsHtml(o)}
+    <div class="oc__t">${fmt(o.total)} ج.م<small>كمية ${o.qty}</small></div>
+    <div class="oc__f">${statusSelect(o, `data-st="${o.row}"`)}${wl ? `<a class="o-btn o-btn--line sm" href="${wl}" target="_blank" rel="noopener">رسالة</a>` : ""}<button class="o-btn o-btn--line sm" type="button" data-pr="${o.row}">طباعة</button><button class="o-btn o-btn--line sm" type="button" data-open="${o.row}">التفاصيل</button></div>
+  </article>`;
+}
+
+function renderList() {
+  const q = fQ.trim().toLowerCase();
+  shown = orders.filter(o => inRange(o) && (!fStatus || o.status === fStatus) &&
+    (!q || [o.n, o.name, o.phone, o.email, o.items, o.address, o.tracking, o.notes].join(" ").toLowerCase().includes(q)));
+  $("#cnt").textContent = shown.length + " طلب";
+  $("#ex").textContent = "تصدير Excel (" + shown.length + ")";
+  $("#list").innerHTML = shown.length ? shown.map(card).join("") :
+    `<div class="ord-empty">${orders.length ? "مفيش طلبات مطابقة للبحث." : "لسه مفيش طلبات في الشيت."}</div>`;
+}
+
+/* ---------- change status ---------- */
+async function changeStatus(row, value, sel) {
+  const o = orders.find(x => x.row === row);
+  if (!o || o.status === value) return;
+  const prev = o.status;
+  sel.disabled = true;
+  try {
+    const j = await api({ action: "update", row: o.row, key: o.key, status: value });
+    Object.assign(o, j.order);
+    toast("تم تحديث الحالة: " + value);
+    refreshView();
+  } catch (e) {
+    sel.value = prev;
+    handleErr(e);
+  }
+  sel.disabled = false;
+}
+
+/* ---------- details dialog ---------- */
+function openDlg(row) {
+  const o = orders.find(x => x.row === row);
+  if (!o) return;
+  const dd = (label, val, html) => (val || html) ? `<dt>${label}</dt><dd>${html || esc(val)}</dd>` : "";
+  const dlg = $("#dlg");
+  dlg.innerHTML = `<form class="od ${cls(o.status)}" id="odf" novalidate>
+    <h2>طلب #${o.n} — ${esc(o.name) || "بدون اسم"}</h2>
+    <dl>
+      ${dd("تاريخ الطلب", o.date)}
+      ${dd("التليفون", "", `<span class="oc__links">${contactLinks(o)}</span>`)}
+      ${dd("الإيميل", o.email)}
+      ${dd("العنوان", o.address)}
+      ${dd("المنتجات", "", itemsHtml(o))}
+      ${dd("الكمية", String(o.qty))}
+      ${dd("الإجمالي", fmt(o.total) + " ج.م")}
+      ${dd("ملاحظات العميل", o.notes)}
+      ${dd("التسليم المتوقع", o.expected)}
+      ${dd("تاريخ الشحن", o.shipped)}
+      ${dd("تاريخ الوصول", o.arrived)}
+      ${dd("آخر تحديث", o.updated)}
+    </dl>
+    <div class="o-f"><label for="ds">الحالة</label>${statusSelect(o, 'id="ds"')}</div>
+    <div class="od__row2">
+      <div class="o-f"><label for="dsh">شركة الشحن</label><input id="dsh" type="text" maxlength="100" value="${esc(o.shipper)}"></div>
+      <div class="o-f"><label for="dtr">رقم التتبع</label><input id="dtr" type="text" maxlength="100" dir="ltr" value="${esc(o.tracking)}"></div>
+    </div>
+    <div class="o-f"><label for="dmsg">رسالة واتساب للعميل (بتتغيّر مع الحالة، وتقدر تعدّلها)</label><textarea id="dmsg" rows="5">${esc(waText(o))}</textarea></div>
+    <div class="od__acts"><button class="o-btn o-btn--line" type="button" id="dwa">فتح واتساب</button><button class="o-btn o-btn--line" type="button" id="dpi">طباعة فاتورة</button><button class="o-btn o-btn--line" type="button" id="dpp">طباعة ورقة تجهيز</button><button class="o-btn o-btn--line danger" type="button" id="ddel">حذف الأوردر</button></div>
+    <p class="o-err" id="derr" role="alert"></p>
+    <div class="o-form__foot"><button class="o-btn" type="submit" id="dsave">حفظ</button><button class="o-btn o-btn--line" type="button" id="dclose">إغلاق</button></div>
+  </form>`;
+  dlg.hidden = false;
+  $("#dclose").onclick = closeDlg;
+  const cur0 = () => orders.find(x => x.row === row) || o;
+  const draft = () => Object.assign({}, cur0(), { status: $("#ds").value || cur0().status, shipper: $("#dsh").value.trim(), tracking: $("#dtr").value.trim() });
+  ["#ds", "#dsh", "#dtr"].forEach(sel => ["input", "change"].forEach(ev => $(sel).addEventListener(ev, () => { $("#dmsg").value = waText(draft()); })));
+  $("#dwa").onclick = () => { const u = waLink(o, $("#dmsg").value); if (u) window.open(u, "_blank", "noopener"); else toast("مفيش رقم تليفون للأوردر ده."); };
+  $("#dpi").onclick = () => printDoc(cur0(), "inv");
+  $("#dpp").onclick = () => printDoc(cur0(), "prep");
+  $("#ddel").onclick = () => {
+    const c = cur0(), acts = $("#ddel").parentNode, box = document.createElement("div");
+    box.className = "od__confirm"; box.setAttribute("role", "alertdialog");
+    box.innerHTML = `<p>متأكد إنك عايز تحذف طلب #${c.n} (${esc(c.name) || "بدون اسم"})؟ هيتشال من الشيت، وهتلاقي نسخة منه في شيت "المحذوفات".</p><div class="od__acts"><button type="button" class="o-btn danger--solid" id="dyes">نعم، احذف الأوردر</button><button type="button" class="o-btn o-btn--line" id="dno">لأ، رجوع</button></div>`;
+    acts.style.display = "none"; acts.after(box);
+    $("#dno").onclick = () => { box.remove(); acts.style.display = ""; };
+    $("#dyes").onclick = async () => {
+      $("#dyes").disabled = true; $("#derr").textContent = "";
+      try {
+        await api({ action: "delete", row: c.row, key: c.key });
+        orders = orders.filter(x => x.row !== c.row);
+        closeDlg(); refreshView(); toast("تم حذف الطلب #" + c.n);
+      } catch (e) {
+        if (e.code === "auth" || e.code === "stale") { closeDlg(); handleErr(e); return; }
+        $("#derr").textContent = e.code === "action" ? "السكريبت قديم: الصق Code.gs الجديد وانشره (Deploy ← Manage deployments ← Edit ← New version) عشان الحذف يشتغل." : e.message;
+        $("#dyes").disabled = false;
+      }
+    };
+  };
+  $("#ds").focus();
+  $("#odf").addEventListener("submit", async ev => {
+    ev.preventDefault();
+    const cur = orders.find(x => x.row === row) || o;
+    const status = $("#ds").value, shipper = $("#dsh").value.trim(), tracking = $("#dtr").value.trim();
+    const body = { action: "update", row: cur.row, key: cur.key, shipper: shipper, tracking: tracking };
+    if (status && status !== cur.status) body.status = status;
+    if (!body.status && shipper === cur.shipper && tracking === cur.tracking) { closeDlg(); return; }
+    $("#dsave").disabled = true; $("#dsave").textContent = "جاري الحفظ..."; $("#derr").textContent = "";
+    try {
+      const j = await api(body);
+      Object.assign(cur, j.order);
+      closeDlg(); refreshView(); toast("تم الحفظ");
+    } catch (e) {
+      if (e.code === "auth" || e.code === "stale") { closeDlg(); handleErr(e); return; }
+      $("#derr").textContent = e.message;
+      $("#dsave").disabled = false; $("#dsave").textContent = "حفظ";
+    }
+  });
+}
+
+function closeDlg() {
+  const dlg = $("#dlg");
+  dlg.hidden = true; dlg.innerHTML = "";
+  if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+}
+
+/* ---------- items, dates, WhatsApp text, summary, print, export, sound ---------- */
+let fDate = "all", shown = [], snd = true, actx = null, newCount = 0;
+try { snd = localStorage.getItem("Elio_orders_snd") !== "0"; } catch (e) { /* storage blocked */ }
+
+function parseItems(t) {
+  return String(t || "").split("\n").map(l => l.trim()).filter(Boolean).map(l => {
+    const m = l.match(/^(.*) \(([^()]*)\) x(\d+) — (.*)$/);
+    if (!m) return { raw: l };
+    const p = parseFloat(m[4].replace(/[^\d.]/g, ""));
+    return { name: m[1], brand: m[2], qty: +m[3], price: isNaN(p) ? null : p };
+  });
+}
+function parseDate(s) {
+  let m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/);
+  if (m) return new Date(+m[1], m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0)).getTime();
+  m = String(s).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  return m ? new Date(+m[3], m[2] - 1, +m[1]).getTime() : null;
+}
+const prep = o => { o._items = parseItems(o.items); o._ts = parseDate(o.date); return o; };
+
+const itemsHtml = o => `<ul class="oc__p">${o._items.map(i => i.raw
+  ? `<li><span class="p-n">${esc(i.raw)}</span></li>`
+  : `<li><span class="p-n">${esc(i.name)}${i.brand ? ` <small>${esc(i.brand)}</small>` : ""}</span><span class="p-q">×${i.qty}</span><span class="p-pr">${i.price == null ? "—" : fmt(i.price * i.qty)}</span></li>`).join("")}</ul>`;
+
+function waText(o) {
+  const hi = "أهلاً " + (o.name || "") + "،\n", ref = "طلبك رقم #" + o.n + " من Elio";
+  const tr = (o.shipper ? "\nشركة الشحن: " + o.shipper : "") + (o.tracking ? "\nرقم التتبع: " + o.tracking : "");
+  const T = {
+    "طلب جديد": `وصلنا ${ref} وجاري مراجعته، وهنأكد معاك التفاصيل قريب.\nالإجمالي: ${fmt(o.total)} ج.م`,
+    "جاري التجهيز": `${ref} بيتجهّز دلوقتي، وهنبلغك أول ما يتشحن.`,
+    "جاهز للشحن": `${ref} جاهز للشحن وهيتسلّم لشركة الشحن قريب.`,
+    "تم الشحن": `${ref} اتشحن بالفعل.${tr}`,
+    "في الطريق": `${ref} في الطريق ليك دلوقتي.${tr}\nيا ريت تتأكد إن حد موجود يستلمه.`,
+    "تم التسليم": `${ref} اتسلّم. شكرًا لثقتك في Elio، ويسعدنا نسمع رأيك.`
+  };
+  return hi + (T[o.status] || `بخصوص ${ref}: حالة الطلب دلوقتي "${o.status}".`);
+}
+const waLink = (o, text) => { const w = waNum(o.phone); return w ? "https://wa.me/" + w + "?text=" + encodeURIComponent(text == null ? waText(o) : text) : ""; };
+
+function inRange(o) {
+  if (fDate === "all") return true;
+  if (o._ts == null) return false;
+  const n = new Date(), day = new Date(n.getFullYear(), n.getMonth(), n.getDate()).getTime();
+  return fDate === "today" ? o._ts >= day : fDate === "week" ? o._ts >= day - 6 * 864e5 : o._ts >= new Date(n.getFullYear(), n.getMonth(), 1).getTime();
+}
+
+function renderSum() {
+  const n = new Date(), day = new Date(n.getFullYear(), n.getMonth(), n.getDate()).getTime(), mon = new Date(n.getFullYear(), n.getMonth(), 1).getTime();
+  const agg = from => orders.filter(o => o._ts != null && o._ts >= from).reduce((a, o) => (a.s += o.total, a.c++, a), { s: 0, c: 0 });
+  const t = agg(day), m = agg(mon), top = {};
+  orders.filter(inRange).forEach(o => o._items.forEach(i => {
+    if (i.raw) return;
+    const k = i.name + (i.brand ? " (" + i.brand + ")" : ""), x = top[k] || (top[k] = { q: 0, r: 0 });
+    x.q += i.qty; x.r += (i.price || 0) * i.qty;
+  }));
+  const tp = Object.entries(top).sort((a, b) => b[1].q - a[1].q).slice(0, 5);
+  const lbl = { all: "كل الوقت", today: "النهارده", week: "آخر 7 أيام", month: "الشهر" }[fDate];
+  $("#sum").innerHTML =
+    `<div class="chip chip--sum"><b>${fmt(t.s)}</b><span>مبيعات النهارده · ${t.c} طلب</span></div>` +
+    `<div class="chip chip--sum"><b>${fmt(m.s)}</b><span>مبيعات الشهر · ${m.c} طلب</span></div>` +
+    `<details class="chip chip--sum chip--top"><summary><b>${tp[0] ? esc(tp[0][0]) + " ×" + tp[0][1].q : "—"}</b><span>أكتر منتج مبيعًا (${lbl}) · اضغط للتفاصيل</span></summary>` +
+    tp.map(([k, v], i) => `<div>${i + 1}. ${esc(k)} — ×${v.q} (${fmt(v.r)} ج.م)</div>`).join("") + `</details>`;
+}
+
+function printDoc(o, kind) {
+  const w = window.open("", "_blank");
+  if (!w) { toast("المتصفح منع نافذة الطباعة، اسمح بالنوافذ المنبثقة وجرّب تاني."); return; }
+  const P = kind === "prep", logo = new URL("img/logo.png", location.href).href, dash = "—";
+  const rows = o._items.map(i => i.raw ? `<tr><td colspan="${P ? 4 : 5}">${esc(i.raw)}</td></tr>`
+    : P ? `<tr><td class="bx">☐</td><td>${esc(i.name)}</td><td>${esc(i.brand)}</td><td class="q">×${i.qty}</td></tr>`
+        : `<tr><td>${esc(i.name)}</td><td>${esc(i.brand)}</td><td>${i.qty}</td><td>${i.price == null ? dash : fmt(i.price)}</td><td>${i.price == null ? dash : fmt(i.price * i.qty)}</td></tr>`).join("");
+  w.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${P ? "ورقة تجهيز" : "فاتورة"} #${o.n}</title><style>
+@page{size:A4;margin:14mm}body{font-family:"IBM Plex Sans Arabic",Tahoma,Arial,sans-serif;color:#111;font-size:14px}
+header{display:flex;align-items:center;gap:14px;border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:14px}header img{height:54px}header h1{font-size:22px;margin:0 0 2px}header p{margin:0;color:#555}
+.info{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;margin-bottom:14px}.info b{color:#555;font-weight:500}
+table{width:100%;border-collapse:collapse}th,td{border:1px solid #bbb;padding:7px 9px;text-align:start}th{background:#eee}
+.q{font-size:${P ? 22 : 14}px;font-weight:700}.bx{width:28px;font-size:20px;text-align:center}
+.tot{text-align:end;font-size:18px;font-weight:700;margin:12px 0}.note{border:1px dashed #888;padding:8px 10px;margin-top:12px}.sig{margin-top:30px;display:flex;gap:40px}
+</style></head><body>
+<header><img src="${logo}" alt=""><div><h1>${P ? "ورقة تجهيز" : "فاتورة"} — طلب #${o.n}</h1><p>${esc(o.date)}</p></div></header>
+<div class="info"><div><b>العميل:</b> ${esc(o.name)}</div><div><b>التليفون:</b> <span dir="ltr">${esc(o.phone)}</span></div>
+<div style="grid-column:1/-1"><b>العنوان:</b> ${esc(o.address) || dash}</div>${o.email && !P ? `<div><b>الإيميل:</b> ${esc(o.email)}</div>` : ""}
+<div><b>شركة الشحن:</b> ${esc(o.shipper) || "________"} &nbsp; <b>رقم التتبع:</b> ${esc(o.tracking) || "________"}</div></div>
+<table><thead><tr>${P ? "<th></th><th>المنتج</th><th>الماركة</th><th>الكمية</th>" : "<th>المنتج</th><th>الماركة</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th>"}</tr></thead><tbody>${rows}</tbody></table>
+${P ? "" : `<div class="tot">الإجمالي: ${fmt(o.total)} ج.م</div>`}${o.notes ? `<div class="note"><b>ملاحظات العميل:</b> ${esc(o.notes)}</div>` : ""}
+${P ? `<div class="sig"><span>جهّزه: ________</span><span>راجعه: ________</span></div>` : `<p style="text-align:center;color:#555;margin-top:30px">شكرًا لثقتكم في Elio</p>`}
+<script>addEventListener("load",function(){setTimeout(function(){print()},400)})<\/script></body></html>`);
+  w.document.close();
+}
+
+// CSV with a BOM so Excel opens Arabic correctly. Cells that could run as formulas are neutralised,
+// and phones are written as ="0101..." so Excel keeps the leading 0.
+function exportCsv() {
+  const cell = v => { let s = String(v == null ? "" : v); if (/^[=@\t\r]/.test(s) || (/^[+-]/.test(s) && !/^[+-]?[\d\s().-]+$/.test(s))) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
+  const ph = p => { const d = String(p || "").replace(/[^\d+]/g, ""); return d ? '"=""' + d + '"""' : '""'; };
+  const head = ["رقم", "التاريخ", "العميل", "التليفون", "الإيميل", "العنوان", "المنتجات", "الكمية", "الإجمالي", "الحالة", "شركة الشحن", "رقم التتبع", "تاريخ الشحن", "تاريخ الوصول", "ملاحظات"];
+  const lines = [head.map(cell).join(",")].concat(shown.map(o =>
+    [o.n, o.date, o.name, o.phone, o.email, o.address, o.items.replace(/\n/g, " | "), o.qty, o.total, o.status, o.shipper, o.tracking, o.shipped, o.arrived, o.notes]
+      .map((v, i) => i === 3 ? ph(v) : cell(v)).join(",")));
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" }));
+  a.download = "Elio-orders-" + new Date().toISOString().slice(0, 10) + ".csv";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+const unlock = () => { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); } catch (e) { /* no audio */ } };
+["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, unlock, { once: true }));
+function chime() {
+  if (!snd || !actx) return;
+  [[880, 0], [1175, 0.18]].forEach(([f, t]) => {
+    const o = actx.createOscillator(), g = actx.createGain(), s = actx.currentTime + t;
+    o.frequency.value = f; o.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(0.0001, s); g.gain.exponentialRampToValueAtTime(0.3, s + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, s + 0.35);
+    o.start(s); o.stop(s + 0.4);
+  });
+}
+
+/* ---------- start ---------- */
+pw = store.get();
+if (pw) {
+  app.innerHTML = `<div class="o-login"><p style="color:#fff">جاري التحميل...</p></div>`;
+  load().then(showApp).catch(e => { pw = ""; store.set(""); showLogin(e.code === "auth" ? "" : e.message); });
+} else {
+  showLogin();
+}
+})();
+</script>
+</body>
+</html>
