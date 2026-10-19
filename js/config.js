@@ -171,6 +171,6 @@ const SITE_CONFIG = {
   // ---------------------------------------------------------------------
   orderSync: {
     enabled: true,
-    webhookUrl: "https://script.google.com/macros/s/AKfycbweJljf289hmXqwMwPPQM3adOfLHVZOoRUiy5PPuIK0zxTdG99Adxx3FjJFqTkdhZ9nDQ/exec"
+    webhookUrl: "https://script.google.com/macros/s/AKfycbwn3zUepJy8-0_pubCwHK7gNZmbcqu2RVbYxI_w4jYN_hBXux0u3n9gGNnWBnCqXVFQhg/exec"
   }
 };
