@@ -283,6 +283,7 @@ const ShopUI = {
     const f = k => this.fieldVal(k);
     const payload = {
       timestamp: new Date().toISOString(),
+      lang: document.documentElement.getAttribute("lang") === "ar" ? "ar" : "en",
       customer: { name: f("name"), phone: f("phone"), email: f("email"), address: f("address"), notes: f("notes") },
       items: lines.map(({ p, qty }) => {
         const price = getPrice(p);
