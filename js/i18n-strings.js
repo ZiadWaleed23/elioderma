@@ -51,6 +51,12 @@ I18N.add("ar", {
   view_cart: "عرض العربة",
   back_to_top: "العودة للأعلى",
   quick_links: "روابط سريعة",
+  /* 404 page */
+  page_not_found_elio: "الصفحة غير موجودة — Elio",
+  error_404: "خطأ 404",
+  page_not_found: "الصفحة غير موجودة",
+  page_not_found_text: "ممكن تكون الصفحة اتنقلت أو اتغير اسمها أو مش موجودة أصلاً.",
+  back_to_home: "العودة للرئيسية",
   privacy_policy: "سياسة الخصوصية",
   terms_conditions: "الشروط والأحكام",
   all_rights_reserved: "جميع الحقوق محفوظة.",

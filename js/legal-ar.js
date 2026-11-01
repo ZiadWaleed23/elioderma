@@ -194,5 +194,11 @@ ${CONTACT}</section>
 `;
 
   var page = box.getAttribute("data-legal") || (/terms/i.test(location.pathname) ? "terms" : "privacy");
-  if (PAGES[page]) box.innerHTML = PAGES[page];
+  if (PAGES[page]) {
+    /* Same layout as the English pages: sticky sidebar (TOC) + main column */
+    var html = PAGES[page];
+    var m = html.match(/^\s*(<p class="legal__updated">[\s\S]*?<\/p>)\s*(<nav class="legal__toc"[\s\S]*?<\/nav>)([\s\S]*)$/);
+    if (m) html = '<div class="legal-layout"><aside class="legal-side">' + m[2] + '</aside><div class="legal-main">' + m[1] + m[3] + '</div></div>';
+    box.innerHTML = html;
+  }
 })();
