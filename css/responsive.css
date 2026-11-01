@@ -108,7 +108,7 @@
   .product-row .product-card { flex-basis: 160px; }
 
   .value-grid { grid-template-columns: 1fr; }
-  .value-item { padding: 32px 26px; }
+  .value-item { padding: 24px 22px 28px; }
 
   .footer-grid { grid-template-columns: 1fr; gap: 36px; padding-bottom: 44px; }
   .footer-bottom { flex-direction: column; align-items: flex-start; }
@@ -154,10 +154,18 @@
   }
 }
 @media (max-width: 640px) {
-  .stats-band__item { padding: 34px 10px; }
+  .stats-band { margin-top: -36px; padding-bottom: 36px; }
+  .stats-band__grid { border-radius: 22px; }
+  .stats-band__item { padding: 22px 8px; }
+  .stats-band__item:nth-child(even)::before { display: block; top: 0; bottom: 0; }
+  .stats-band__item:nth-child(n+3)::after { background: var(--taupe-line); }
   .stats-band__number { font-size: 2.1rem; }
   .stats-band__label { font-size: 0.68rem; letter-spacing: 0.1em; }
+
+  .contact-cta { padding: 44px 16px; }
+  .contact-cta__card { padding: 56px 18px; border-radius: 30px; }
 }
+
 /* ---------------------------------------------------------------------
    Cart rows on small phones (prices + quantity stepper)
    --------------------------------------------------------------------- */

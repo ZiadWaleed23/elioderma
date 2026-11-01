@@ -48,7 +48,7 @@
 /* ---------------------------------------------------------------------
    2) HEADER + NAVIGATION
    --------------------------------------------------------------------- */
-[dir="rtl"] .cart-count { right: auto; left: 4px; }
+[dir="rtl"] .cart-count { right: auto; left: -4px;}
 [dir="rtl"] .nav-item > a::after { transform-origin: right center !important; }
 
 /* mobile menu slides in from the left in Arabic */
@@ -152,3 +152,16 @@
    --------------------------------------------------------------------- */
 [dir="rtl"] #ld, [dir="rtl"] #ld * { direction: ltr; }
 [dir="rtl"] #ld .ld-status, [dir="rtl"] #ld .ld-brand { font-family: var(--font-body); }
+[dir="rtl"] .legal-hero {
+  text-align: right;
+}
+[dir="rtl"] .legal-main .legal__section li {
+  padding-left: 0; padding-right: 18px;
+}
+[dir="rtl"] .legal-main .legal__section li::before {
+  left: auto; right: 2px;
+}
+[dir="rtl"] .stats-band__number {
+  font-weight: 700;
+}
+
