@@ -754,6 +754,19 @@ input, select, textarea, button { font-size: 1rem; }
   background: linear-gradient(180deg, var(--lavender) 0%, #BFA3D0 100%);
   color: var(--charcoal);
   padding: 84px 0 0;
+  position: relative;
+  margin-top: clamp(40px, 6vw, 90px); /* room for the wave */
+}
+/* Wavy top edge: SVG filled with the footer gradient's top colour */
+.site-footer::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  bottom: calc(100% - 1px);
+  height: clamp(40px, 6vw, 90px);
+  background: no-repeat center / 100% 100%
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 120' preserveAspectRatio='none'%3E%3Cpath fill='%23CDB4DB' d='M0 70C180 118 360 112 560 74S920 8 1120 36s240 34 320 18V120H0Z'/%3E%3C/svg%3E");
+  pointer-events: none;
 }
 .footer-grid {
   display: grid;
