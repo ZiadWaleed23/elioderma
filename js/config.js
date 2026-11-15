@@ -26,9 +26,9 @@ const SITE_CONFIG = {
   // ---------------------------------------------------------------------
   contact: {
     email: "sales@elioderma.com",
-    phone: "+201050208206",
-    whatsapp: "+201050208206",
-    whatsappLink: "https://wa.me/201050208206",
+    phone: "+201041403100",
+    whatsapp: "+201041403100",
+    whatsappLink: "https://wa.me/201041403100",
     location: "Hadaek Al-Ahram - 118",
     location_ar: "حدائق الأهرام - 118",
     hours: "Sun – Thu, 10 A.M – 10 P.M",
